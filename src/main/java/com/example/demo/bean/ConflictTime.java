@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConflictTime {
-	public List<String> conflictStates=new ArrayList<String>();
+	public List<String[]> conflictStates=new ArrayList<String[]>();
 	public String conflictTime=null;
-	public List<String> getConflictStates() {
+	public List<String[]> getConflictStates() {
 		return conflictStates;
 	}
-	public void setConflictStates(List<String> conflictStates) {
+	public void setConflictStates(List<String[]> conflictStates) {
 		this.conflictStates = conflictStates;
 	}
 	public String getConflictTime() {

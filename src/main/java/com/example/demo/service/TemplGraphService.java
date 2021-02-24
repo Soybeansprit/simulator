@@ -5,14 +5,18 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.dom4j.DocumentException;
+import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 import com.example.demo.service.GetTemplate.Branchpoint;
 import com.example.demo.service.GetTemplate.Label;
 import com.example.demo.service.GetTemplate.Location;
 import com.example.demo.service.GetTemplate.Template;
 import com.example.demo.service.GetTemplate.Transition;
-
-public class TemplateGraph {
+@Service
+public class TemplGraphService {
 
 	public static void main(String[] args) throws DocumentException {
 		// TODO Auto-generated method stub
@@ -24,7 +28,7 @@ public class TemplateGraph {
 		parse.deletLine(path1, path2, 2);
 		List<Template> templates=parse.getTemplate(path2);
 		
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		for(Template template:templates) {
 			templGraphs.add(tGraph.getTemplGraph(template));
@@ -42,36 +46,19 @@ public class TemplateGraph {
 
 	}
 	
-	class TemplGraph{
-		String name=null;
-		String declaration=null;
-		String parameter=null;
-		String init=null;
-		List<TemplGraphNode> templGraphNodes=new ArrayList<TemplGraphNode>();
-	
-	}
-	
-	class TemplGraphNode{
-		String name=null;
-		String id=null;
-		String invariant=null;
-		String style=null;       //location or branchpoint
-		boolean flag=false;
-		List<TemplTransition> inTransitions=new ArrayList<TemplTransition>();
-		List<TemplTransition> outTransitions=new ArrayList<TemplTransition>();
-	}
-	
-	class TemplTransition{
-		String source=null;
-		String target=null;
-		TemplGraphNode node=new TemplGraphNode();
-		String assignment=null;
-		String synchronisation=null;
-		String guard=null;
-		String probability=null;     //source or target中有branchpoint则有这一项
+	public List<TemplGraph> getTemplGraphs(String modelPathStr) throws DocumentException{
+		GetTemplate getTemplate=new GetTemplate();
+		List<Template> templates=getTemplate.getTemplate(modelPathStr);
 		
+		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
+		for(Template template:templates) {
+			TemplGraph templGraph=getTemplGraph(template);
+			templGraphs.add(templGraph);
+		}
 		
+		return templGraphs;
 	}
+
 	
 	//template->templGraph
 	public TemplGraph getTemplGraph(Template template) {

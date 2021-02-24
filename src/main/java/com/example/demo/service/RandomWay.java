@@ -17,10 +17,10 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-import com.example.demo.service.TGraphToDot.Trigger;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
+import com.example.demo.bean.Trigger;
 
 //import com.simulate.GenerateSysDeclaration.Parameter;
 //import com.simulate.GetRule.Rule;
@@ -397,9 +397,8 @@ public class RandomWay {
 	//biddable类型需要设置为随机时间的变量
 	public List<TimeValue> getTimeValues(TemplGraph templGraph){
 		List<TimeValue> timeValues=new ArrayList<TimeValue>();
-		TemplateGraph tGraph=new TemplateGraph();
 		if(templGraph.declaration!=null &&templGraph.declaration.indexOf("biddable")>=0 && templGraph.declaration.indexOf("sensor")<0) {
-			TemplGraphNode initNode=tGraph.new TemplGraphNode();
+			TemplGraphNode initNode=new TemplGraphNode();
 			for(TemplGraphNode node:templGraph.templGraphNodes) {
 				if(node.id.equals(templGraph.init)) {
 					initNode=node;
@@ -440,16 +439,21 @@ public class RandomWay {
 		int interval=allTime/timeValues.size();
 		for(int i=0;i<timeValues.size();i++) {
 			//i*interval-(i+1)*interval
-			if(i==0) {
-				//0-interval
-				timeValues.get(i).timeValue=rd.nextInt(interval);
-			}else if(i<timeValues.size()-1) {
-				int tempInterval=(interval*(i+1)-timeValues.get(i-1).timeValue)/2;
-				timeValues.get(i).timeValue=rd.nextInt(tempInterval)+tempInterval+timeValues.get(i-1).timeValue;
-			}else{
-				int tempInterval=(allTime-timeValues.get(i-1).timeValue)/2;
-				timeValues.get(i).timeValue=rd.nextInt(tempInterval)+tempInterval+timeValues.get(i-1).timeValue;
+			if(timeValues.size()==1) {
+				timeValues.get(i).timeValue=allTime/2;
+			}else {
+				if(i==0) {
+					//0-interval
+					timeValues.get(i).timeValue=rd.nextInt(interval);
+				}else if(i<timeValues.size()-1) {
+					int tempInterval=(interval*(i+1)-timeValues.get(i-1).timeValue)/2;
+					timeValues.get(i).timeValue=rd.nextInt(tempInterval)+tempInterval+timeValues.get(i-1).timeValue;
+				}else{
+					int tempInterval=(allTime-timeValues.get(i-1).timeValue)/2;
+					timeValues.get(i).timeValue=rd.nextInt(tempInterval)+tempInterval+timeValues.get(i-1).timeValue;
+				}
 			}
+			
 			System.out.println(timeValues.get(i).timeName);
 			System.out.println(timeValues.get(i).timeValue);
 		}

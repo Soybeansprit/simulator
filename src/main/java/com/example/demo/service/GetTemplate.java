@@ -17,7 +17,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-
+import org.springframework.stereotype.Service;
+@Service
 public class GetTemplate {
 
 	public static void main(String[] args) throws DocumentException {
@@ -88,14 +89,14 @@ public class GetTemplate {
 	
 	
 	////////////////Template///////////////////////////////
-	class Template{
-		String name=null; 
-		String declaration=null;
-		String parameter=null;
-		List<Location> locations= new ArrayList<Location>();
-		List<Branchpoint> branchpoints=new ArrayList<Branchpoint>();
-		String init=null;
-		List<Transition> transitions=new ArrayList<Transition>();
+	public class Template{
+		public String name=null; 
+		public String declaration=null;
+		public String parameter=null;
+		public List<Location> locations= new ArrayList<Location>();
+		public List<Branchpoint> branchpoints=new ArrayList<Branchpoint>();
+		public String init=null;
+		public List<Transition> transitions=new ArrayList<Transition>();
 	}
 	
 	class Location{

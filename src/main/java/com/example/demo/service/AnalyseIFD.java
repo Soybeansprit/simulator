@@ -7,12 +7,11 @@ import java.util.Stack;
 import org.dom4j.DocumentException;
 
 import com.example.demo.bean.Rule;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-
+import com.example.demo.bean.TemplGraph;
 import com.example.demo.service.GetTemplate.Template;
+import com.example.demo.bean.Action;
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.GraphNodeArrow;
-import com.example.demo.service.TGraphToDot.Action;
 
 
 public class AnalyseIFD {
@@ -34,7 +33,7 @@ public class AnalyseIFD {
 		//parse.deletLine(path1, path2, 2);
 		List<Template> templates=parse.getTemplate(path2);
 		
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		for(Template template:templates) {
 			templGraphs.add(tGraph.getTemplGraph(template));
@@ -905,8 +904,7 @@ public class AnalyseIFD {
 	
 	//根据actionNode获得其对应的Action类型中的action
 	public Action getActionNodeAction(GraphNode actionNode,List<Action> actions) {
-		TGraphToDot tDot=new TGraphToDot();
-		Action action=tDot.new Action();
+		Action action=new Action();
 		for(Action ac:actions) {
 			if(ac.action.equals(actionNode.getName())) {
 				action=ac;

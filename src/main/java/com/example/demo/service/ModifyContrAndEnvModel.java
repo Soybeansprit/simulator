@@ -18,11 +18,11 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 import com.example.demo.bean.GraphNode;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 import com.example.demo.service.AnalyseIFD.RuleAndTriggerRules;
 import com.example.demo.service.AnalyseIFD.TriggerStopRules;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
 
 //import com.simulate.GetRule.Rule;
 //import com.simulate.GetTemplate.Template;

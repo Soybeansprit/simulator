@@ -7,6 +7,8 @@ import java.util.List;
 
 public class Scene {
 	private String sceneName=null;
+	
+	private List<DataTimeValue> datasTimeValue=new ArrayList<DataTimeValue>();
 	private List<NameDataFunction> nameDataFunctions=new ArrayList<NameDataFunction>();
 	private List<DeviceAnalysResult> devicesAnalysResults=new ArrayList<DeviceAnalysResult>();
 	private List<DataTimeValue> triggeredRulesName=new ArrayList<DataTimeValue>();
@@ -40,5 +42,12 @@ public class Scene {
 	}
 	public void setCannotTriggeredRulesName(List<String> cannotTriggeredRulesName) {
 		this.cannotTriggeredRulesName = cannotTriggeredRulesName;
+	}
+	
+	public List<DataTimeValue> getDatasTimeValue() {
+		return datasTimeValue;
+	}
+	public void setDatasTimeValue(List<DataTimeValue> datasTimeValue) {
+		this.datasTimeValue = datasTimeValue;
 	}
 }

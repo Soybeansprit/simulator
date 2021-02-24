@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.demo.bean.Parameter;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 
 //import com.simulate.GenerateSysDeclaration.Parameter;
 //import com.simulate.TemplateGraph.TemplGraph;

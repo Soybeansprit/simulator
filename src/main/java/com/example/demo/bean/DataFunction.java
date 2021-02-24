@@ -3,11 +3,13 @@ package com.example.demo.bean;
 
 
 public class DataFunction {
+	
 	public Double downTime=null;
 	public Double upTime=null;
 	public Double downValue=null;
 	public Double upValue=null;
 	public Function function=null;
+	
 	public Double getDownTime() {
 		return downTime;
 	}

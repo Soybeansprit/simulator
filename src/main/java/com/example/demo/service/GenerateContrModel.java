@@ -16,8 +16,8 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 import com.example.demo.bean.Rule;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
 
 public class GenerateContrModel {
 

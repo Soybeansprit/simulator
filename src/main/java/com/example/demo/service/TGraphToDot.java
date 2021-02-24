@@ -6,13 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.dom4j.DocumentException;
+import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.Action;
 import com.example.demo.bean.Rule;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
+import com.example.demo.bean.Trigger;
 import com.example.demo.service.GetTemplate.Template;
-
+@Service
 public class TGraphToDot {
 
 	public static void main(String[] args) throws DocumentException, IOException {
@@ -32,7 +35,7 @@ public class TGraphToDot {
 		//parse.deletLine(path1, path2, 2);
 		List<Template> templates=parse.getTemplate(path2);
 		
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		for(Template template:templates) {
 			templGraphs.add(tGraph.getTemplGraph(template));
@@ -72,7 +75,7 @@ public class TGraphToDot {
 	public void getIFDDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
 		GetTemplate parse=new GetTemplate();
 		TGraphToDot tDot = new TGraphToDot();
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
 		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
 		List<TemplGraph> biddables=new ArrayList<TemplGraph>();
@@ -619,20 +622,7 @@ public class TGraphToDot {
 
 	
 	
-	class Trigger{		
-		String trigger=null;
-		String triggerNum=null;
-		String[] attrVal=new String[3];
-		List<Rule> rules=new ArrayList<Rule>();		
-	}
-	
-	class Action{		
-		String action=null;
-		String device=null;
-		String toState=null;
-		List<String[]> attrVal=new ArrayList<String[]>();
-		List<Rule> rules=new ArrayList<Rule>();
-	}
+
 	
 	///////////////////////////////////2020.12.20////////////////////////////////////
 	//获得所有提到的condition节点
@@ -1417,10 +1407,9 @@ public class TGraphToDot {
 	public void getDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
 		GetTemplate parse=new GetTemplate();
 		TGraphToDot tDot = new TGraphToDot();
-		TemplateGraph tGraph=new TemplateGraph();
 		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
 		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
-		TemplGraph rain=tGraph.new TemplGraph();
+		TemplGraph rain=new TemplGraph();
 		for(TemplGraph templGraph:templGraphs) {
 			if(templGraph.declaration!=null) {
 				if(templGraph.declaration.indexOf("controlled_device")>=0) {

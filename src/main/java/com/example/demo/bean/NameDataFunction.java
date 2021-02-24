@@ -6,13 +6,13 @@ import java.util.List;
 
 
 public class NameDataFunction {
-	public String dataName=null;
+	public String name=null;
 	public List<DataFunction> dataFunctions=new ArrayList<DataFunction>();
 	public String getName() {
-		return dataName;
+		return name;
 	}
-	public void setName(String dataName) {
-		this.dataName = dataName;
+	public void setName(String name) {
+		this.name = name;
 	}
 	public List<DataFunction> getDataFunctions() {
 		return dataFunctions;

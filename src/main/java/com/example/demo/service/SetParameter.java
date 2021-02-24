@@ -7,17 +7,18 @@ import java.util.Random;
 
 import org.dom4j.DocumentException;
 
+import com.example.demo.bean.Action;
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.GraphNodeArrow;
 import com.example.demo.bean.Rule;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 import com.example.demo.service.AnalyseIFD.RuleAndTriggerRules;
 import com.example.demo.service.AnalyseIFD.RuleStyle;
 import com.example.demo.service.AnalyseIFD.TriAndTriggerRule;
 import com.example.demo.service.AnalyseIFD.TriggerStopRules;
-import com.example.demo.service.TGraphToDot.Action;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
+
 
 //import com.simulate.GetRule.Rule;
 //import com.simulate.GetTemplate.Template;

@@ -19,9 +19,9 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
 import com.example.demo.bean.Rule;
-import com.example.demo.service.TemplateGraph.TemplGraph;
-import com.example.demo.service.TemplateGraph.TemplGraphNode;
-import com.example.demo.service.TemplateGraph.TemplTransition;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 import com.example.demo.service.GetTemplate.Template;
 
 public class GenerateEnvModel {
@@ -35,7 +35,7 @@ public class GenerateEnvModel {
 		RuleService ruleService=new RuleService();
 		
 		GenerateEnvModel gModel=new GenerateEnvModel();
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		
 		GetTemplate parse=new GetTemplate();
 		parse.deletLine(path1, path2, 2);
@@ -294,7 +294,7 @@ public class GenerateEnvModel {
 	
 	//拼接图形
 	public List<TemplGraph> stitchGraphs(List<List<TemplGraph>> bpTemplGraphs,TemplGraph biddable){
-		TemplateGraph tempG=new TemplateGraph();
+		TemplGraphService tempG=new TemplGraphService();
 		List<TemplGraph> finalGraphs=new ArrayList<TemplGraph>();
 		
 		for(List<TemplGraph> bpTemplGraph:bpTemplGraphs) {
@@ -371,8 +371,8 @@ public class GenerateEnvModel {
 	
 	//bfs  根据一个branchpoint及选择的边获得对应的部分确定图
 	public TemplGraph getGraph(String bpid,TemplTransition chooseTran) {
-		TemplateGraph tempG=new TemplateGraph();
- 		TemplGraph templGraph=tempG.new TemplGraph();
+		TemplGraphService tempG=new TemplGraphService();
+ 		TemplGraph templGraph=new TemplGraph();
 		TemplGraphNode node=tempG.cloneTemplGraphNode(chooseTran.node);
 		templGraph.templGraphNodes.add(node);
 		Stack<TemplGraphNode> stack=new Stack<TemplGraphNode>();
@@ -435,8 +435,8 @@ public class GenerateEnvModel {
 	
 	public TemplTransition chooseTran(TemplGraphNode branchpoint) {
 		//考虑只有两个分支的
-		TemplateGraph tGraph=new TemplateGraph();
-		TemplTransition choosedTran=tGraph.new TemplTransition();
+		TemplGraphService tGraph=new TemplGraphService();
+		TemplTransition choosedTran=new TemplTransition();
 		String weight0Str=branchpoint.outTransitions.get(0).probability;
 		String weight1Str=branchpoint.outTransitions.get(1).probability;
 		int weight0=Integer.parseInt(weight0Str);
@@ -461,8 +461,8 @@ public class GenerateEnvModel {
 	
 	//branchpoint到入边节点的出边
 	public TemplTransition selfTran(TemplGraphNode branchpoint) {
-		TemplateGraph tGraph=new TemplateGraph();
-		TemplTransition selfT=tGraph.new TemplTransition();
+		TemplGraphService tGraph=new TemplGraphService();
+		TemplTransition selfT=new TemplTransition();
 		int flag=0;
 		for(TemplTransition outTransition:branchpoint.outTransitions) {
 			if(outTransition.node==branchpoint.inTransitions.get(0).node) {
@@ -503,8 +503,8 @@ public class GenerateEnvModel {
 		//如果有branchpoint则说明是不确定的模型，则需要确定化
 		//只考虑branchpoint有俩边
 		if(template.branchpoints.size()>0) {
-			TemplateGraph tGraph=new TemplateGraph();
-			TemplGraph templGraph=tGraph.new TemplGraph();
+			TemplGraphService tGraph=new TemplGraphService();
+			TemplGraph templGraph=new TemplGraph();
 			//template转templGraph
 			templGraph=tGraph.getTemplGraph(template);
 			templGraphs.add(templGraph);
@@ -560,8 +560,8 @@ public class GenerateEnvModel {
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		//如果有branchpoint则说明是不确定的模型，则需要确定化
 		if(template.branchpoints.size()>0) {
-			TemplateGraph tGraph=new TemplateGraph();
-			TemplGraph templGraph=tGraph.new TemplGraph();
+			TemplGraphService tGraph=new TemplGraphService();
+			TemplGraph templGraph=new TemplGraph();
 			//template转templGraph
 			templGraph=tGraph.getTemplGraph(template);
 			templGraphs.add(templGraph);
@@ -711,12 +711,12 @@ public class GenerateEnvModel {
 	public List<TemplGraph> determine(String name,List<Template> templates) {
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		
-		TemplateGraph tGraph=new TemplateGraph();
+		TemplGraphService tGraph=new TemplGraphService();
 		//目前只考虑两个模板，branchpoint只有两个出边
 		
 		for(Template template:templates) {
 			if(template.name.equals(name)) {
-				TemplGraph templGraph=tGraph.new TemplGraph();
+				TemplGraph templGraph=new TemplGraph();
 				templGraph=tGraph.getTemplGraph(template);
 				templGraphs.add(templGraph);
 				break;
@@ -743,7 +743,7 @@ public class GenerateEnvModel {
 			while(count-1>0) {
 				for(Template template:templates) {
 					if(template.name.equals(name)) {
-						TemplGraph templGraph=tGraph.new TemplGraph();
+						TemplGraph templGraph=new TemplGraph();
 						templGraph=tGraph.getTemplGraph(template);
 						templGraphs.add(templGraph);
 						break;
