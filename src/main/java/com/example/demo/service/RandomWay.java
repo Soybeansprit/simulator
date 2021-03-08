@@ -16,6 +16,7 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
@@ -30,7 +31,7 @@ import com.example.demo.bean.Trigger;
 //import com.simulate.TemplateGraph.TemplGraph;
 //import com.simulate.TemplateGraph.TemplGraphNode;
 //import com.simulate.TemplateGraph.TemplTransition;
-
+@Service
 public class RandomWay {
 
 	public static void main(String[] args) throws DocumentException, IOException {
@@ -250,8 +251,11 @@ public class RandomWay {
 			AttrPiecewise attrPiecewise=new AttrPiecewise();
 			attrPiecewise.name=attribute;
 			List<Trigger> triggersWithSameAttribtue=getTriggersWithSameAttribute(attribute, triggers);
-			attrPiecewise.piecewise=getPiecewise(triggersWithSameAttribtue);
-			attrPiecewises.add(attrPiecewise);
+			if(triggersWithSameAttribtue.size()>0) {
+				attrPiecewise.piecewise=getPiecewise(triggersWithSameAttribtue);
+				attrPiecewises.add(attrPiecewise);
+			}
+
 		}
 		
 		return attrPiecewises;

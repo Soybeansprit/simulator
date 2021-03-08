@@ -2,18 +2,19 @@ package com.example.demo.bean;
 
 public class DeviceCannotOff {
 	public boolean cannotOff=false;
-	public String reason=null;
+	public CannotOffReason cannotOffReason=new CannotOffReason();
+	
 	public boolean isCannotOff() {
 		return cannotOff;
 	}
 	public void setCannotOff(boolean cannotOff) {
 		this.cannotOff = cannotOff;
 	}
-	public String getReason() {
-		return reason;
+	public CannotOffReason getReason() {
+		return cannotOffReason;
 	}
-	public void setReason(String reason) {
-		this.reason = reason;
+	public void setReason(CannotOffReason reason) {
+		this.cannotOffReason = reason;
 	}
 
 }

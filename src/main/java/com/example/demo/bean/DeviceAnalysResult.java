@@ -7,7 +7,7 @@ public class DeviceAnalysResult {
 	public DeviceConflict statesConflict=new DeviceConflict();
 	public StatesChange statesChange=new StatesChange();
 	public DeviceStateTime deviceStateLastTime=new DeviceStateTime();
-	public DeviceCannotOff deviceCannotOff=null;
+	public DeviceCannotOff deviceCannotOff= new DeviceCannotOff();
 	public DeviceStateName deviceStateName=new DeviceStateName();
 	
 	public String getDeviceName() {

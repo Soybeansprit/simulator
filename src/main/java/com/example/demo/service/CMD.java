@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.springframework.stereotype.Service;
+@Service
 public class CMD {
 
 	public static void main(String[] args) {

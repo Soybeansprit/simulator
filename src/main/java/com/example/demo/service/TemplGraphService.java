@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -44,6 +45,17 @@ public class TemplGraphService {
 			}
 		}
 
+	}
+	
+	public List<TemplGraph> getTemplGraphs(File file) throws DocumentException{
+		GetTemplate getTemplate=new GetTemplate();
+		List<Template> templates=getTemplate.getTemplate(file);
+		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
+		for(Template template:templates) {
+			TemplGraph templGraph=getTemplGraph(template);
+			templGraphs.add(templGraph);
+		}
+		return templGraphs;
 	}
 	
 	public List<TemplGraph> getTemplGraphs(String modelPathStr) throws DocumentException{

@@ -8,6 +8,11 @@ import java.util.List;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.DataTimeValue;
+import com.example.demo.bean.Scene;
+import com.example.demo.bean.SceneChild;
+import com.example.demo.bean.ScenesTree;
+
 
 @Service
 public class SimulateResultService {
@@ -29,6 +34,9 @@ public class SimulateResultService {
 		simulateResultService.getAllSimulateResultFile(filePath, modelNames, uppaalBinPath,dataNum);
 
 	}
+	
+	
+
 	
 	public void getSimulateResultFile(String filePath,String modelName,String uppaalBinPath,int dataNum) throws IOException {
 		CMD cmd=new CMD();

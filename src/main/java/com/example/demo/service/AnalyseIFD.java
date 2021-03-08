@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Stack;
 
 import org.dom4j.DocumentException;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
@@ -13,7 +14,7 @@ import com.example.demo.bean.Action;
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.GraphNodeArrow;
 
-
+@Service
 public class AnalyseIFD {
 
 	public static void main(String[] args) throws DocumentException {

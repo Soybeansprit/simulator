@@ -6,10 +6,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.GraphNodeArrow;
 
-
+@Service
 public class ToNode {
 
 	public static void main(String[] args) {
@@ -46,6 +48,14 @@ public class ToNode {
 			}
 		}
 		
+	}
+	
+	public List<GraphNode> getGraphNodes(String filePath,String initFileName){
+		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
+		String initFileModelName=initFileName.replace(".xml", "");
+		String ifdDotFileName=initFileModelName+"-ifd.dot";
+		graphNodes=getNodes(filePath+"\\"+ifdDotFileName);
+		return graphNodes;
 	}
 	
 	public List<GraphNode> getNodes(String dotPath){

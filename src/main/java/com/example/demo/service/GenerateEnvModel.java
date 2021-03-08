@@ -17,13 +17,14 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
 import com.example.demo.bean.TemplTransition;
 import com.example.demo.service.GetTemplate.Template;
-
+@Service
 public class GenerateEnvModel {
 
 	public static void main(String[] args) throws DocumentException, IOException {

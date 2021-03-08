@@ -307,6 +307,122 @@ public class GetTemplate {
 //		return rain;
 //	}
 	
+	public List<Template> getTemplate(File file) throws DocumentException{
+		List<Template> templates=new ArrayList<Template>();
+		if(file.getName().indexOf(".xml")>=0) {
+			SAXReader reader= new SAXReader();
+			Document document = reader.read(file);
+			Element rootElement=document.getRootElement();
+			System.out.println(rootElement.getName());
+			
+			List<Element> templateElements=rootElement.elements("template");
+			for(Element tempElement:templateElements) {
+				System.out.println(tempElement.getName());
+				//解析获得template
+				Template template=new Template();
+				//name
+				Element nameElement=tempElement.element("name");
+				template.name=nameElement.getTextTrim();
+				System.out.println(nameElement.getName());
+				//declaration
+				Element declarElement=tempElement.element("declaration");
+				if(declarElement!=null) {
+					template.declaration=declarElement.getText();
+					System.out.println(declarElement.getName());
+				}
+				//parameter
+				Element paraElement=tempElement.element("parameter");
+				if(paraElement!=null) {
+					template.parameter=paraElement.getTextTrim();
+					System.out.println(paraElement.getName());
+				}
+				
+				//locations
+				List<Element> locaElements=tempElement.elements("location");
+				
+				for(Element locaElement:locaElements) {
+					System.out.println(locaElement.getName());
+					Location location=new Location();
+					Attribute attr=locaElement.attribute("id");
+					location.id=attr.getValue();
+					System.out.println();
+					System.out.println(location.id);
+					System.out.println();
+					Element locaNameElement=locaElement.element("name");
+					if(locaNameElement!=null) {
+						location.name=locaNameElement.getTextTrim();
+						System.out.println(locaElement.getName());
+					}
+					Element invaElement=locaElement.element("label");
+					if(invaElement!=null) {
+						location.invariant=invaElement.getTextTrim();
+						System.out.println(invaElement.getName());
+					}
+					Element urgentElement=locaElement.element("urgent");
+					if(urgentElement!=null) {
+						location.style="urgent";
+					}
+					Element committedElement=locaElement.element("committed");
+					if(committedElement!=null) {
+						location.style="committed";
+					}
+					if(urgentElement==null&&committedElement==null) {
+						location.style="location";
+					}
+					template.locations.add(location);
+				}
+				//branchpoint
+				List<Element> branElements=tempElement.elements("branchpoint");
+				if(branElements!=null) {
+					for(Element branElement:branElements) {
+						Branchpoint branchpoint=new Branchpoint();
+						Attribute attr=branElement.attribute("id");
+						branchpoint.id=attr.getValue();
+						template.branchpoints.add(branchpoint);
+						System.out.println(branElement.getName());
+					}
+				}
+				//init
+				Element initElement=tempElement.element("init");
+				Attribute initAttr=initElement.attribute("ref");
+				template.init=initAttr.getValue();
+				System.out.println(initElement.getName());
+				//transitions
+				List<Element> tranElements=tempElement.elements("transition");
+				for(Element tranElement:tranElements) {
+					System.out.println(tranElement.getName());
+					Transition transition=new Transition();
+					Element sourceElement=tranElement.element("source");
+					Attribute sourAttr=sourceElement.attribute("ref");
+					transition.sourceId=sourAttr.getValue();
+					System.out.println(sourceElement.getName());
+					Element targetElement=tranElement.element("target");
+					Attribute tarAttr=targetElement.attribute("ref");
+					transition.targetId=tarAttr.getValue();
+					System.out.println(targetElement.getName());
+					List<Element> labelElements=tranElement.elements("label");
+					if(labelElements!=null) {
+						for(Element labelElement:labelElements) {
+							System.out.println(labelElement.getName());
+							Label label=new Label();
+							Attribute kindAttr=labelElement.attribute("kind");
+							label.kind=kindAttr.getValue();
+							label.content=labelElement.getTextTrim();
+							transition.labels.add(label);
+						}
+					}
+					template.transitions.add(transition);
+				}
+				//添加template
+				templates.add(template);
+			}
+
+		}else {
+			System.out.println("please upload .xml file");
+		}
+		return templates;
+	}
+	
 	//解析xml文件，获得template
 	public List<Template> getTemplate(String path) throws DocumentException{
 		SAXReader reader= new SAXReader();
@@ -418,6 +534,7 @@ public class GetTemplate {
 		}
 		return templates;
 	}
+	
 	
 	
 	

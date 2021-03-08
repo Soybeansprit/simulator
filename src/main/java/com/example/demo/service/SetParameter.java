@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.dom4j.DocumentException;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.Action;
 import com.example.demo.bean.GraphNode;
@@ -31,7 +32,7 @@ import com.example.demo.service.AnalyseIFD.TriggerStopRules;
 //import com.simulate.AnalyseIFD.RuleStyle;
 //import com.simulate.AnalyseIFD.TriAndTriggerRule;
 //import com.simulate.AnalyseIFD.TriggerStopRules;
-
+@Service
 public class SetParameter {
 
 	public static void main(String[] args) throws DocumentException {
@@ -157,7 +158,10 @@ public class SetParameter {
 				}
 			}
 			String[] attributeValue=setAttributeInitValue(attrVals);
-			allAttributeValue.add(attributeValue);
+			if(attributeValue!=null) {
+				allAttributeValue.add(attributeValue);
+			}
+			
 		}
 		return allAttributeValue;
 	}
@@ -187,6 +191,9 @@ public class SetParameter {
 	///////////////////////////////2020.12.27//////////////////////////////
 	//////////////不随机，改成确定的值/////////////////////////////
 	public String[] setAttributeInitValue(List<String[]> attrVals) {
+		if(attrVals.size()==0) {
+			return null;
+		}
 		String[] attributeValue=new String[2];
 		attributeValue[0]=attrVals.get(0)[0];
 		Double value=null;
@@ -323,7 +330,10 @@ public class SetParameter {
 					}
 				}
 			}
-			rulesSameAttributes.add(rulesSameAttribute);
+			if(rulesSameAttribute.ruleWithSameAttribute.size()>0) {
+				rulesSameAttributes.add(rulesSameAttribute);
+			}
+			
 		}
 		return rulesSameAttributes;
 	}

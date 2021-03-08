@@ -4,6 +4,7 @@ public class StateChangeFast {
 	public double[] startTimeValue=new double[2];
 	public double[] middleTimeValue=new double[2];
 	public double[] endTimeValue=new double[2];
+	/////////[0]是time [1]是stateValue
 	public double[] getStartTimeValue() {
 		return startTimeValue;
 	}

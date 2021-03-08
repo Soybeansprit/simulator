@@ -1,11 +1,14 @@
 package com.example.demo.service;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.Action;
 import com.example.demo.bean.ConflictTime;
@@ -19,6 +22,11 @@ import com.example.demo.bean.DeviceStateTime;
 import com.example.demo.bean.Function;
 import com.example.demo.bean.NameDataFunction;
 import com.example.demo.bean.Rule;
+import com.example.demo.bean.RuleAndRelativeRules;
+import com.example.demo.bean.Scene;
+import com.example.demo.bean.SceneChild;
+import com.example.demo.bean.ScenesTree;
+import com.example.demo.bean.StateCauseRulesAndRelativeRules;
 import com.example.demo.bean.StateChangeFast;
 import com.example.demo.bean.StateLastTime;
 import com.example.demo.bean.StateNameRelativeRule;
@@ -30,12 +38,38 @@ import com.example.demo.bean.TemplTransition;
 
 
 
-
+@Service
 public class DataAnalysisService {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+	}
+	
+
+	
+	///////////////////////////////从csv文件中读取某仿真数据的时间值DataTimeValue//////////////////
+	public DataTimeValue getDataTimeValue(String csvFilePath) throws IOException{
+		DataTimeValue dataTimeValue=new DataTimeValue();
+		FileReader fr=new FileReader(csvFilePath);
+		BufferedReader br=new BufferedReader(fr);
+		String str=br.readLine();
+		while(str!=null) {
+			if(str!=null && str.indexOf("# time,")>=0) {
+				String dataName=str.substring(str.indexOf("# time,")).substring("# time,".length()).trim();
+				dataTimeValue.name=dataName;							
+			}else if(str.indexOf(",")>0){
+				String splitValue[]=str.split(",");
+				double[] timeValue=new double[2];
+				timeValue[0]=Double.parseDouble(splitValue[0]);
+				timeValue[1]=Double.parseDouble(splitValue[1]);
+				dataTimeValue.timeValue.add(timeValue);
+			}
+			str=br.readLine();	
+		}
+		br.close();
+		fr.close();
+		return dataTimeValue;
 	}
 	
 	//获得输出文件中的各属性时间点和值
@@ -184,6 +218,10 @@ public class DataAnalysisService {
 		return nameDataFunctions;
 	}
 	
+
+	
+
+	
 	//////////////////////////设备分析//////////////////////////
 	public DeviceAnalysResult getSceneDeviceAnalysisResult(DataTimeValue dataTimeValue,TemplGraph controlledDevice,List<Action> actions,
 			List<DataTimeValue> rulesTimeValue,String allTime,String equivalentTime,String intervalTime) {
@@ -253,7 +291,7 @@ public class DataAnalysisService {
 		int stateChangeCount=0;
 		for(int i=0;i<deviceDataFunction.dataFunctions.size();i++) {
 			DataFunction dataFunction=deviceDataFunction.dataFunctions.get(i);
-			if(Math.abs(dataFunction.downValue-dataFunction.upValue)>0.5) {
+			if(!(dataFunction.downTime+"").equals(dataFunction.upTime+"") &&Math.abs(dataFunction.downValue-dataFunction.upValue)>0.5) {
 				stateChangeCount++;
 			}
 			
@@ -266,10 +304,16 @@ public class DataAnalysisService {
 					(dataFunction.upTime-dataFunction.downTime)>0) {
 				////状态变化///////////////////////////
 				/////寻找下一次状态变化在什么时候/////////////
-				stateChangeCount++;
 				boolean hasStateChangeNext=false;
 				for(int j=i+1;j<deviceDataFunction.dataFunctions.size();j++) {
 					DataFunction nextDataFunction=deviceDataFunction.dataFunctions.get(j);
+					DataFunction beforeDataFunction=deviceDataFunction.dataFunctions.get(j-1);
+					if((beforeDataFunction.downTime+"").equals(beforeDataFunction.upTime+"") && 
+							Math.abs(beforeDataFunction.downValue-beforeDataFunction.upValue)>0.5) {
+						//////表明上一个有冲突，跳过
+						i=j;
+						continue;
+					}
 					if(Math.abs(nextDataFunction.downValue-nextDataFunction.upValue)>0.5 &&
 							(nextDataFunction.upTime-nextDataFunction.downTime)>0) {
 						double startTime=dataFunction.upTime;
@@ -342,6 +386,10 @@ public class DataAnalysisService {
 	/////////////////////////////设备能不能关////////////////////////
 	/////////////////////////////如果没有是因为没有相应规则呢/////////////////////
 	////////////////////////////还是因为相应规则无法触发呢//////////////////////////
+	
+
+	
+	////////////////////////////////////new 修改了DeivceCannotOff////////////////////////////////////
 	public DeviceCannotOff cannotOff(List<StateLastTime> statesTime,List<Action> actions,DeviceStateName deviceStateName) {
 		DeviceCannotOff deviceCannotOff=new DeviceCannotOff();
 		if(statesTime.size()>1) {
@@ -353,20 +401,23 @@ public class DataAnalysisService {
 							deviceCannotOff.cannotOff=true;
 							boolean existRule=false;
 							String rulestr="";
+							List<Rule> cannotTriggeredRules=new ArrayList<Rule>();
 							for(Action action:actions) {
 								if(action.toState.equals(stateTime.stateName)) {
 									existRule=true;
 									for(Rule rule:action.rules) {
 										rulestr=rulestr+rule.getRuleName()+" ";
+										cannotTriggeredRules.add(rule);
 									}
 									break;
 								}
 							}
 							if(!existRule) {
-								deviceCannotOff.reason="No rules to turn off the device.";
+								deviceCannotOff.cannotOffReason.reason="No rules to turn off the device.";
 								//是因为没有相应规则
 							}else {
-								deviceCannotOff.reason=rulestr+"cannot be triggered.";
+								deviceCannotOff.cannotOffReason.reason=rulestr+"cannot be triggered in this scene.";
+								deviceCannotOff.cannotOffReason.cannotTriggeredRules=cannotTriggeredRules;
 								//是因为相应规则无法触发
 							}
 						}
@@ -383,7 +434,7 @@ public class DataAnalysisService {
 ///////////////////////设备状态是否存在冲突////////////////
 	public DeviceConflict getStateConflict(DataTimeValue deviceTimeValue,DeviceStateName deviceStateName) {
 		DeviceConflict deviceConflict=new DeviceConflict();
-		deviceTimeValue.name=deviceStateName.deviceName;
+		deviceConflict.name=deviceStateName.deviceName;
 		for(int i=0;i<deviceTimeValue.timeValue.size();) {
 			boolean existConflict=false;
 			ConflictTime conflictTime=new ConflictTime();
@@ -545,6 +596,35 @@ public class DataAnalysisService {
 		return stateNameRelativeRule;
 	}
 	
+	public StateCauseRulesAndRelativeRules getStateCauseRules(DeviceStateName deviceStateName,String value) {
+		StateCauseRulesAndRelativeRules stateCauseRulesAndRelativeRules=new StateCauseRulesAndRelativeRules();
+		for(StateNameRelativeRule stateValueName:deviceStateName.stateNames) {
+			if(Double.parseDouble(stateValueName.stateValue)==Double.parseDouble(value)) {
+				stateCauseRulesAndRelativeRules.stateName=stateValueName.stateName;
+				stateCauseRulesAndRelativeRules.stateValue=stateValueName.stateValue;
+				for(Rule rule:stateValueName.relativeRules) {
+					RuleAndRelativeRules ruleAndRelativeRules=new RuleAndRelativeRules();
+					ruleAndRelativeRules.rule=rule;
+					stateCauseRulesAndRelativeRules.causeRules.add(ruleAndRelativeRules);
+				}
+				
+			}
+		}
+		return stateCauseRulesAndRelativeRules;
+	}
+	
+	/////////////////////////////////////返回直接造成该状态的rules
+	public List<Rule> getStatePossibleCauseRules(DeviceStateName deviceStateName,String value){
+		List<Rule> possibleCauseRules=new ArrayList<Rule>();
+		for(StateNameRelativeRule stateValueName:deviceStateName.stateNames) {
+			if(Double.parseDouble(stateValueName.stateValue)==Double.parseDouble(value)) {
+				possibleCauseRules=stateValueName.relativeRules;
+				break;
+			}
+		}
+		
+		return possibleCauseRules;
+	}
 	
 
 }

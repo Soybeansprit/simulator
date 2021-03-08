@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.bean.Action;
 import com.example.demo.bean.Rule;
@@ -54,6 +57,12 @@ public class Controller {
 	@Autowired
 	TGraphToDot tDot;
 	
+	
+	
+	
+
+
+	
 	@RequestMapping(value="getScenesTree",method = RequestMethod.GET)
 	@ResponseBody
 	public ScenesTree getScenesTree() throws DocumentException, IOException {
@@ -72,6 +81,7 @@ public class Controller {
 
 		return scenesTree;
 	}
+	
 	
 	@RequestMapping(value="getAllSimulateResult",method = RequestMethod.GET)
 	@ResponseBody
@@ -96,7 +106,7 @@ public class Controller {
 		GenerateSysDeclaration gSysDeclaration=new GenerateSysDeclaration();
 		
 		String modelName=initModelName+"-final-"+sceneName;
-		int dataNum=gSysDeclaration.getSimulateDataNum(filePath+"\\"+initModelName+"-final-"+sceneName);
+		int dataNum=gSysDeclaration.getSimulateDataNum(filePath+"\\"+initModelName+"-final-"+sceneName+".xml");
 		simulateResultService.getSimulateResultFile(filePath, modelName, uppaalBinPath,dataNum);
 	}
 	

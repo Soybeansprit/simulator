@@ -16,6 +16,7 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.TemplGraph;
@@ -36,7 +37,7 @@ import com.example.demo.service.AnalyseIFD.TriggerStopRules;
 //import com.simulate.AnalyseIFD.RuleStyle;
 //import com.simulate.AnalyseIFD.TriAndTriggerRule;
 //import com.simulate.AnalyseIFD.TriggerStopRules;
-
+@Service
 public class ModifyContrAndEnvModel {
 
 	public static void main(String[] args) throws DocumentException, IOException {

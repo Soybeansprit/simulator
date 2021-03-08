@@ -5,6 +5,7 @@ import java.util.List;
 
 public class ConflictTime {
 	public List<String[]> conflictStates=new ArrayList<String[]>();
+	////////////conflictState[0]=stateValue, conflictState[1]=stateName
 	public String conflictTime=null;
 	public List<String[]> getConflictStates() {
 		return conflictStates;

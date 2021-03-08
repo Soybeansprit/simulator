@@ -14,11 +14,12 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
-
+@Service
 public class GenerateContrModel {
 
 	public static void main(String[] args) throws DocumentException, IOException {
@@ -107,7 +108,7 @@ public class GenerateContrModel {
 			//初始节点具有不变式t<=3
 			Element labelElement0=startElement.addElement("label");
 			labelElement0.addAttribute("kind", "invariant");
-			labelElement0.setText("t<=3");
+			labelElement0.setText("t<=1");
 			//第一个节点为初始节点
 			Element initElement=ruleElement.addElement("init");
 			initElement.addAttribute("ref", "id0");
@@ -220,7 +221,7 @@ public class GenerateContrModel {
 					firstTargetElement.addAttribute("ref", "id"+(1+count));
 					Element guardElement=firstTransitionElement.addElement("label");
 					guardElement.addAttribute("kind", "guard");
-					guardElement.setText("t>=3");
+					guardElement.setText("t>=1");
 					transitionElements.add(0,firstTransitionElement);
 				}
 				if(i==rule.getTrigger().size()-1) {

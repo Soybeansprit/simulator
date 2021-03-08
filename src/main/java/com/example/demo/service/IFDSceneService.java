@@ -6,8 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.dom4j.DocumentException;
+import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.GraphNode;
+import com.example.demo.bean.IFDModelParameters;
+import com.example.demo.bean.GenerateModelParameters;
 import com.example.demo.bean.Parameter;
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
@@ -27,7 +30,7 @@ import com.example.demo.service.SetParameter.RulesSameAttribute;
 
 
 
-
+@Service
 public class IFDSceneService {
 
 	public static void main(String[] args) {
@@ -101,6 +104,162 @@ public class IFDSceneService {
 		}
 		tDot.getIFD(templGraphs, rules, dotPath);
 	}
+	
+	
+	public IFDModelParameters generateIFDModel(String middleChangedFilePath,String finalIfdFilePath,String ifdDotPath,List<TemplGraph> templGraphs,List<Rule> rules,String simulationTime) throws DocumentException, IOException {
+		ToNode toNode=new ToNode();
+		AnalyseIFD anaIFD=new AnalyseIFD();
+		SetParameter setParameter=new SetParameter();
+		ModifyContrAndEnvModel modifyModel=new ModifyContrAndEnvModel();
+		GenerateSysDeclaration gSysDeclar=new GenerateSysDeclaration();
+		
+		
+		IFDModelParameters ifdModelParameters=new IFDModelParameters();
+		List<Parameter> parameters=new ArrayList<Parameter>();
+		List<String> instances=new ArrayList<String>();
+		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
+		List<String> attributes=new ArrayList<String>();
+		
+		List<TemplGraph> biddables=new ArrayList<TemplGraph>();
+		
+		/////////////////////get IFD node//////////////////////////
+		//从IFD中获得GraphNode类型的node
+		///////////////////////////////////////////////////////////
+		
+		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
+		graphNodes=toNode.getNodes(ifdDotPath);
+		
+		///////////////////////////analyse IFD////////////////////////////////
+		//获得IFD各节点graphNodes
+		//先获得IFD中的ruleNode
+		//用getRulesAndTriggerRules方法获得各ruleNode所能触发的其他规则
+		//获得IFD中的triggerNode
+		//用getTriggerStopRules方法获得可能引起其他rule无法发生的triggerNode
+		/////////////////////////////////////////////////////////////////////
+		List<GraphNode> ruleNodes=new ArrayList<GraphNode>();
+		for(GraphNode graphNode:graphNodes) {
+			if(graphNode.getShape().indexOf("hexagon")>=0) {
+				ruleNodes.add(graphNode);
+			}
+		}
+		List<RuleAndTriggerRules> rulesAndTriggerRules=new ArrayList<RuleAndTriggerRules>();
+		rulesAndTriggerRules=anaIFD.getRulesAndTriggerRules(ruleNodes);
+		for(RuleAndTriggerRules ruleAndTriggerRules:rulesAndTriggerRules) {
+			anaIFD.getAllTriggerRules(ruleAndTriggerRules, rulesAndTriggerRules);
+		}
+		
+		List<GraphNode> triggerNodes=new ArrayList<GraphNode>();
+		for(GraphNode graphNode:graphNodes) {
+			if(graphNode.getShape().indexOf("oval")>=0) {
+				triggerNodes.add(graphNode);
+			}
+		}
+		List<TriggerStopRules> triggersStopRules=anaIFD.getTriggerStopRules(triggerNodes);
+		for(TriggerStopRules triggerStopRules:triggersStopRules) {
+			System.out.println(triggerStopRules.triggerNode.getLabel());
+		}
+		
+		///////////////////////setParameters/////////////////////////////////////////////////
+		//同Analyse IFD获得ruleAndTriggerRules以及triggerStopRules
+		//获得所有actions  getAction方法获得
+		//利用actions获得causal属性，getAttributesEffectedByDevice方法
+		//进而获得涉及这些属性的rules-ruleSameAttributes，使用getRulesWithSameAttribute方法
+		//选择相同属性rule中触发规则数最多的rule-chooseRules，使用getChooseRule方法
+		//获得chooseRule后，可以对属性赋值  使用getAllAttributeValue方法，这里把chooseRule合并进去了
+		/////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////假如有些属性或设备没有在规则中涉及到的话/////////////////////////
+		attributes=setParameter.getCausalAttributes(templGraphs);
+		List<RulesSameAttribute> rulesSameAttributes=setParameter.getRulesWithSameAttribute(rulesAndTriggerRules, attributes, rules);
+		List<String[]> allAttributeValue=setParameter.getAllAttributeValue(rulesSameAttributes,triggersStopRules);
+		List<RuleAndTriggerRules> chooseRules=new ArrayList<RuleAndTriggerRules>();
+		for(RulesSameAttribute ruleSameAttribute:rulesSameAttributes) {
+			RuleAndTriggerRules chooseRule=setParameter.getChooseRule(ruleSameAttribute,triggersStopRules);
+			chooseRules.add(chooseRule);			
+		}
+		
+		////////////////////////////////modify model//////////////////////////////////////
+		//主要是修改biddable类型的model，一般除了person相关的model
+		//这是在获得triggerStopRules获得之后进行修改的，biddable模型的进行前提是某些rule发生后
+		//其实这里可以删除rulesAndTriggerRules的吧
+		//使用modifyContrEnvModel方法，
+		//////首先保证“某些rule”确实能被触发，只要看是否在chooseRules以及chooseRules触发的rules中即可
+		//////修改模型时暂时只考虑了stop one rule的情况
+		//////////////////////////////////////////////////////////////////////////////////
+		for(TemplGraph templGraph:templGraphs) {
+			if(templGraph.declaration!=null) {
+				if(templGraph.declaration.indexOf("controlled_device")>=0) {
+					controlledDevices.add(templGraph);
+				}
+				if(templGraph.declaration.indexOf("biddable")>=0&& templGraph.declaration.indexOf("sensor")<0) {
+					biddables.add(templGraph);
+				}
+			}
+		}
+		modifyModel.modifyContrEnvModel(middleChangedFilePath, finalIfdFilePath,biddables, rulesAndTriggerRules, chooseRules, triggersStopRules);
+		
+		/////////////////////////system declaration/////////////////////////////////////////////////
+		//先全局声明，需要获得涉及到的所有parameters，使用getParameters方法
+		//这之前需要前面先获得causal属性的initValue
+		//更改parameters：对于含有distance的parameter，其value值设置为10.0，含[rid]的为数组，distance相关，同样赋值
+		//根据parameters对xml文件进行全局声明，使用globalDeclaration方法
+		//模型声明，先对person相关进行参数实例化，再对所有模型实例化
+		//验证器验证仿真参数生成，直接根据parameters获得，不考虑synchronisation
+		/////////////////////////////////////////////////////////////////////////////////////////////
+		parameters=gSysDeclar.getParameters(templGraphs, allAttributeValue);
+		//打印到控制板用
+		for(Parameter parameter:parameters) {
+			System.out.println(parameter.getStyle()+": ");
+			System.out.println("  "+parameter.getName());
+			System.out.println("  "+parameter.getInitValue());
+		}
+		
+		for(Parameter parameter:parameters) {
+			if(parameter.getInitValue()==null) {
+				if(parameter.getName().indexOf("distance")>=0) {
+					if(parameter.getName().indexOf("[rid]")>=0) {
+						String name=parameter.getName().replace("[rid]", "[5]");
+						parameter.setName(name);
+						parameter.setInitValue("{10.0,10.0,10.0,10.0,10.0}");
+					}else {
+						parameter.setInitValue("10.0");
+					}
+				}
+				
+			}
+		}
+		rulesSameAttributes=setParameter.getRulesWithSameAttribute(rulesAndTriggerRules, attributes, rules);
+		allAttributeValue=setParameter.getAllAttributeValue(rulesSameAttributes,triggersStopRules);
+		for(String[] attributeValue:allAttributeValue) {
+			for(Parameter parameter:parameters) {
+				if(attributeValue[0].equals(parameter.getName())) {
+					parameter.setInitValue(attributeValue[1]);
+				}
+			}
+		}
+		//打印到控制板用
+		for(Parameter parameter:parameters) {
+			System.out.println(parameter.getStyle()+": ");
+			System.out.println("  "+parameter.getName());
+			System.out.println("  "+parameter.getInitValue());
+		}
+		
+		////////////////////////确定自治模型每个时间点的值//////////////////////////////
+		/////////////////////////这个是通用的/////////////////////////////
+		instances=getDeclareInstance(templGraphs, Integer.parseInt(simulationTime));
+		
+
+		gSysDeclar.globalDeclaration(finalIfdFilePath, finalIfdFilePath,parameters);
+		gSysDeclar.modelDeclaration(finalIfdFilePath,finalIfdFilePath, templGraphs,instances);		
+		gSysDeclar.setQuery(finalIfdFilePath,finalIfdFilePath, parameters,simulationTime);
+		
+		ifdModelParameters.attributes=attributes;
+		ifdModelParameters.controlledDevices=controlledDevices;
+		ifdModelParameters.instances=instances;
+		ifdModelParameters.parameters=parameters;
+		return ifdModelParameters;
+	}
+	
+	
 	
 	public ParameterInstances ifdToSceneModel(String changedModelFilePathName,String dotPath,String finalModelPath,List<TemplGraph> templGraphs,List<Rule> rules,
 			List<TemplGraph> controlledDevices,List<TemplGraph> biddables,int allTime) throws DocumentException, IOException {

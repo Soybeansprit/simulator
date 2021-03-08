@@ -113,6 +113,7 @@ public class RuleService {
 				System.out.println(ruleStr+"\n    not rule!");
 				rule=null;
 			}else {
+				
 				rule.setRuleName("rule"+num);
 				rule.setRuleContent(ruleStr);
 				String triggerStr=ruleStr.substring(ifIndex, thenIndex).substring("IF ".length()).trim();
@@ -137,10 +138,42 @@ public class RuleService {
 		}
 		return rule;
 	}
+	
+	public List<Rule> getRuleList(List<String> ruleTextLines){
+		List<Rule> rules=new ArrayList<Rule>();
+		List<String> ruleStrList=new ArrayList<String>();;
+		for(String ruleTextLine:ruleTextLines) {
+			if(ruleTextLine!=null && ruleTextLine.toUpperCase().indexOf("IF ")>=0 &&
+					ruleTextLine.toUpperCase().indexOf(" THEN ")>0) {
+				ruleStrList.add(ruleTextLine);
+			}
+		}
+		for(int i=0;i<ruleStrList.size();i++) {
+			String ruleStr=ruleStrList.get(i);
+			Rule rule=getRule(ruleStr, i+1);
+			if(rule!=null) {
+				rules.add(rule);
+			}			
+		}
+		return rules;
+	}
+	
 	///////////////////////////获得所有规则//////////////////////////////////
 	public List<Rule> getRuleList(String ruleTxt){
 		List<String> ruleStrList=new ArrayList<String>();
-		List<String> strList=Arrays.asList(ruleTxt.split("\r\n"));
+		int changeLine=0;
+		if(ruleTxt.indexOf("\r\n")>0) {
+			changeLine=1;
+		}else if(ruleTxt.indexOf("\n")>0) {
+			changeLine=2;
+		}
+		//////////////////////换行了才能算///////////////////////
+		List<String> strList=new ArrayList<String>();
+		if(changeLine==1) {
+			strList=Arrays.asList(ruleTxt.split("\r\n"));
+		}else if(changeLine==2) {
+			strList=Arrays.asList(ruleTxt.split("\n"));
+		}
 		for(String str:strList) {
 			if(str!=null && str.toUpperCase().indexOf("IF ")>=0 &&
 					str.toUpperCase().indexOf(" THEN ")>0) {

@@ -3,6 +3,8 @@ package com.example.demo.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.example.demo.bean.Parameter;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
@@ -12,7 +14,7 @@ import com.example.demo.bean.TemplTransition;
 //import com.simulate.TemplateGraph.TemplGraph;
 //import com.simulate.TemplateGraph.TemplGraphNode;
 //import com.simulate.TemplateGraph.TemplTransition;
-
+@Service
 public class ParameterService {
 
 	public static void main(String[] args) {

@@ -258,7 +258,7 @@ public class GenerateSysDeclaration {
 	}
 	/////////////////////////////获得仿真数据数/////////////////////////
 	public int getSimulateDataNum(String modelFilePathName) throws DocumentException {
-		modelFilePathName=modelFilePathName+".xml";
+		
 		SAXReader reader= new SAXReader();
 		Document document = reader.read(new File(modelFilePathName));
 		Element rootElement=document.getRootElement();
