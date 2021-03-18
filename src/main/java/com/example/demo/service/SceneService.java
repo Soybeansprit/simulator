@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
@@ -25,6 +26,7 @@ import com.example.demo.bean.Scene;
 import com.example.demo.bean.SceneChild;
 import com.example.demo.bean.ScenesTree;
 import com.example.demo.bean.StateAndRuleAndCauseRule;
+import com.example.demo.bean.StateCauseRule;
 import com.example.demo.bean.StateCauseRulesAndRelativeRules;
 import com.example.demo.bean.StateChangeCauseRules;
 import com.example.demo.bean.StateChangeFast;
@@ -217,6 +219,9 @@ public class SceneService {
 		TemplGraphService templGraphService=new TemplGraphService();
 		TGraphToDot tDot=new TGraphToDot();
 		DataAnalysisService dataAnalysisService=new DataAnalysisService();
+		if(scene.getDevicesAnalysResults().size()>0) {
+			return scene;
+		}
 		
 		String initFileModelName=initFileName.replace(".xml", "");
 		String finalModelNameSame=initFileModelName+"-final";
@@ -285,31 +290,157 @@ public class SceneService {
 			allConflictCauseRules.add(conflictCauseRules);
 		}
 		return allConflictCauseRules;
-	}	
+	}
 	
-	//////////////////////////导致状态冲突的规则/利用IFD////ruleAndCauseRules////////////////
-	public List<StateAndRuleAndCauseRule> getDeviceConflictCauseRules(ConflictTime conflictStateTime,List<DataTimeValue> triggeredRulesName,DeviceStateName deviceStateName,List<Rule> rules,List<GraphNode> graphNodes) {
+	public List<StateCauseRule> getStateCauseRules(ConflictTime conflictStateTime,List<DataTimeValue> triggeredRulesName,DeviceStateName deviceStateName,List<Rule> rules,List<GraphNode> graphNodes){
 		DataAnalysisService dataAnalysisService=new DataAnalysisService();
-		List<StateAndRuleAndCauseRule> stateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+		List<StateCauseRule> conflictStatesCauseRules=new ArrayList<StateCauseRule>();
+//		System.out.println("graphNodeNum"+graphNodes.size());
 		double conflictTime=Double.parseDouble(conflictStateTime.conflictTime);
+//		System.out.println("conflictTime: "+conflictTime);
+//		System.out.println("triggeredRuleNum: "+triggeredRulesName.size());
 		for(String[] conflictState:conflictStateTime.conflictStates) {
 			//////////////////所有可能导致冲突的规则///////////
 			List<Rule> possibleCauseRules=dataAnalysisService.getStatePossibleCauseRules(deviceStateName, conflictState[0]);
+//			System.out.println("possibleCauseRulesNum:"+possibleCauseRules.size());
+			StateCauseRule stateCauseRules=new StateCauseRule();
+			stateCauseRules.stateValue=conflictState[0];
+			stateCauseRules.stateName=conflictState[1];
+			////////////////////在这个时刻导致冲突的规则//////////////////
+			List<RuleAndCause> causeRules=new ArrayList<RuleAndCause>();
+			for(Rule rule:possibleCauseRules) {
+//				System.out.println("rule:"+rule.getRuleName());
+				for(DataTimeValue ruleTimeValue:triggeredRulesName) {
+//					System.out.println("ruleTimeValue"+ruleTimeValue.name);
+					if(ruleTimeValue.name.equals(rule.getRuleName())) {
+//						System.out.println("rule.getRuleName:"+rule.getRuleName());
+						NameDataFunction ruleDataFunction=dataAnalysisService.getNameDataFunction(ruleTimeValue);
+						for(DataFunction dataFunction:ruleDataFunction.dataFunctions) {
+							double downValue=dataFunction.downValue;
+							double upValue=dataFunction.upValue;
+
+//							System.out.println("downValue: "+downValue+" upValue: "+upValue);
+//							if(downValue==0&&upValue==1) {
+//								////////////仿真数据的数据跳转仿佛有0.07s的延迟
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+//								if(dataFunction.downTime<=conflictTime && dataFunction.upTime>conflictTime) {
+//									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+//									causeRules.add(rule);
+//									break;
+//								}
+//							}else if(downValue==1&& upValue==1) {
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+//								//////////////规则判定条件有1秒的延迟
+//								if(dataFunction.downTime<conflictTime && dataFunction.upTime>=conflictTime) {
+//									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+//									causeRules.add(rule);
+//									break;
+//								}
+//							}
+							
+							if(downValue==1&&upValue==1) {
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+								//////////////规则判定条件有1秒的延迟
+								if(dataFunction.downTime<conflictTime && (dataFunction.upTime-conflictTime)>0.5) {
+									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+									RuleAndCause causeRule=getRuleCauseRulesfromIFDGraph(graphNodes, rules, rule.getRuleName());
+									for(GraphNode graphNode:graphNodes) {
+										graphNode.flag=false;
+									}
+									causeRules.add(causeRule);
+									break;
+								}else if(dataFunction.downTime>conflictTime && (dataFunction.downTime-conflictTime)<0.1) {
+									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+									RuleAndCause causeRule=getRuleCauseRulesfromIFDGraph(graphNodes, rules, rule.getRuleName());
+									for(GraphNode graphNode:graphNodes) {
+										graphNode.flag=false;
+									}
+									causeRules.add(causeRule);
+									break;
+								}
+							}
+							
+						}
+						break;
+					}
+				}
+			}
+			stateCauseRules.causeRules=causeRules;
+			////////////////////触发该规则的rules////////////////
+
+			conflictStatesCauseRules.add(stateCauseRules);
+			
+		}
+		////////////////////////去掉一些有矛盾的rule/////////////////
+		
+		return conflictStatesCauseRules;
+	}
+	
+	////////////////////////单次冲突//导致状态冲突的规则/利用IFD////ruleAndCauseRules////////////////
+	public List<StateAndRuleAndCauseRule> getDeviceConflictCauseRules(ConflictTime conflictStateTime,List<DataTimeValue> triggeredRulesName,DeviceStateName deviceStateName,List<Rule> rules,List<GraphNode> graphNodes) {
+		DataAnalysisService dataAnalysisService=new DataAnalysisService();
+		List<StateAndRuleAndCauseRule> stateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+		List<StateAndRuleAndCauseRule> newStateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+//		System.out.println("graphNodeNum"+graphNodes.size());
+		double conflictTime=Double.parseDouble(conflictStateTime.conflictTime);
+//		System.out.println("conflictTime: "+conflictTime);
+//		System.out.println("triggeredRuleNum: "+triggeredRulesName.size());
+		for(String[] conflictState:conflictStateTime.conflictStates) {
+			//////////////////所有可能导致冲突的规则///////////
+			List<Rule> possibleCauseRules=dataAnalysisService.getStatePossibleCauseRules(deviceStateName, conflictState[0]);
+//			System.out.println("possibleCauseRulesNum:"+possibleCauseRules.size());
 			StateAndRuleAndCauseRule stateAndRuleAndCauseRule=new StateAndRuleAndCauseRule();
 			stateAndRuleAndCauseRule.stateValue=conflictState[0];
 			stateAndRuleAndCauseRule.stateName=conflictState[1];
 			////////////////////在这个时刻导致冲突的规则//////////////////
 			List<Rule> causeRules=new ArrayList<Rule>();
 			for(Rule rule:possibleCauseRules) {
+//				System.out.println("rule:"+rule.getRuleName());
 				for(DataTimeValue ruleTimeValue:triggeredRulesName) {
+//					System.out.println("ruleTimeValue"+ruleTimeValue.name);
 					if(ruleTimeValue.name.equals(rule.getRuleName())) {
+//						System.out.println("rule.getRuleName:"+rule.getRuleName());
 						NameDataFunction ruleDataFunction=dataAnalysisService.getNameDataFunction(ruleTimeValue);
 						for(DataFunction dataFunction:ruleDataFunction.dataFunctions) {
 							double downValue=dataFunction.downValue;
 							double upValue=dataFunction.upValue;
-							if(downValue==1||upValue==1) {
-								if(dataFunction.downTime<=conflictTime && dataFunction.upTime>=conflictTime) {
-									/////////////规则在这个时刻发生，指会造成冲突的规则//////////////
+
+//							System.out.println("downValue: "+downValue+" upValue: "+upValue);
+//							if(downValue==0&&upValue==1) {
+//								////////////仿真数据的数据跳转仿佛有0.07s的延迟
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+//								if(dataFunction.downTime<=conflictTime && dataFunction.upTime>conflictTime) {
+//									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+//									causeRules.add(rule);
+//									break;
+//								}
+//							}else if(downValue==1&& upValue==1) {
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+//								//////////////规则判定条件有1秒的延迟
+//								if(dataFunction.downTime<conflictTime && dataFunction.upTime>=conflictTime) {
+//									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+//									causeRules.add(rule);
+//									break;
+//								}
+//							}
+							
+							if(downValue==1&&upValue==1) {
+//								System.out.println("downTime: "+dataFunction.downTime+" upTime: "+dataFunction.upTime);
+								//////////////规则判定条件有1秒的延迟
+								if(dataFunction.downTime<conflictTime && (dataFunction.upTime-conflictTime)>0.5) {
+									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
+									causeRules.add(rule);
+									break;
+								}else if(dataFunction.downTime>conflictTime && (dataFunction.downTime-conflictTime)<0.1) {
+									/////////////规则在这个时刻发生，指会造成冲突的规则
+//									System.out.println("causeRule:"+rule.getRuleName());
 									causeRules.add(rule);
 									break;
 								}
@@ -331,10 +462,73 @@ public class SceneService {
 			stateAndRuleAndCauseRules.add(stateAndRuleAndCauseRule);
 			
 		}
+		////////////////////////去掉一些有矛盾的rule/////////////////
 		
 		return stateAndRuleAndCauseRules;
 		
 	}
+	
+	
+	////////////////////TODO
+	/////////////////////////去掉一些有矛盾的rules
+	public List<StateAndRuleAndCauseRule> getNewStateAndRuleAndCauseRules(List<StateAndRuleAndCauseRule> stateAndRuleAndCauseRules){
+		TGraphToDot toDot=new TGraphToDot();
+		List<StateAndRuleAndCauseRule> newStateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+		StateAndRuleAndCauseRule stateCauseRule=new StateAndRuleAndCauseRule();
+		for(StateAndRuleAndCauseRule stateAndRuleAndCauseRule:stateAndRuleAndCauseRules) {
+			if(stateAndRuleAndCauseRule.rulesAndCauseRules.size()==1) {
+				stateCauseRule=stateAndRuleAndCauseRule;
+				break;
+			}
+		}
+		List<String[]> stateCauseRuleAttrVals=new ArrayList<String[]>();
+		List<String> triggers=stateCauseRule.rulesAndCauseRules.get(0).selfRule.getTrigger();
+		for(String trigger:triggers) {
+			String[] attrVal=new String[3];
+			attrVal=toDot.getAttrVal(trigger);
+			stateCauseRuleAttrVals.add(attrVal);
+		}
+		for(StateAndRuleAndCauseRule stateAndRuleAndCauseRule:stateAndRuleAndCauseRules) {
+			if(stateAndRuleAndCauseRule.stateName==stateCauseRule.stateName) {
+				continue;
+			}
+			Iterator<RuleAndCause> ruleAndCauseRules=stateAndRuleAndCauseRule.rulesAndCauseRules.iterator();
+			while(ruleAndCauseRules.hasNext()) {
+				//////////使用迭代器
+				RuleAndCause ruleCause=ruleAndCauseRules.next();
+				///////////////////////如果规则的trigger和stateCauseRule的trigger矛盾则删除规则
+				List<String> otherTriggers=ruleCause.selfRule.getTrigger();
+				boolean existContra=false;
+				third:
+				for(String trigger:otherTriggers) {
+					String[] attrVal=new String[3];
+					attrVal=toDot.getAttrVal(trigger);	
+					for(String[] stateCauseRuleAttrVal:stateCauseRuleAttrVals) {
+						if(attrVal[0].equals(stateCauseRuleAttrVal[0])&&attrVal[1].equals(".")&&!attrVal[2].equals(stateCauseRuleAttrVal[2])) {
+							//////////////////设备状态不同矛盾//////////////
+							existContra=true;
+							break third;
+						}
+						////////////////////////属性值之间存在矛盾////////////////
+					}
+				}
+				if(existContra) {
+					////////////////////存在矛盾就删除规则/////////////////////////////
+				}
+			}
+			
+		}
+		
+		
+		return newStateAndRuleAndCauseRules;
+	}
+	
+//	//////////////判断trigger是否矛盾
+//	public boolean existContra(String[] attrVal1,String[] attrVal2) {
+//		///////////同为一种设备
+//		
+//		///////////同为一种属性
+//	}
 	
 	///////////////////////////////导致状态冲突的规则/同时利用IFD////////////////////////////////////
 	public List<StateCauseRulesAndRelativeRules> getConflictCauseRules(ConflictTime conflictStateTime,List<DataTimeValue> triggeredRulesName,DeviceStateName deviceStateName,List<Rule> rules,List<GraphNode> graphNodes){
@@ -386,20 +580,104 @@ public class SceneService {
 	}
 	
 	/////////////////////////给定rule节点，获得该节点的causeRules///////////////////////////
-	public RuleAndCause getRuleCauseRulesfromIFDGraph(List<GraphNode> graphNodes,List<Rule> rules,String ruleName,List<DataTimeValue> triggeredRulesName) {
+	public RuleAndCause getRuleCauseRulesfromIFDGraph(List<GraphNode> graphNodes,List<Rule> rules,String ruleName) {
 		RuleAndCause ruleAndeCause=new RuleAndCause();
-		for(DataTimeValue triggeredRule:triggeredRulesName) {
-			if(triggeredRule.name.equals(ruleName)) {
-				for(Rule rule:rules) {
-					if(rule.getRuleName().equals(ruleName)) {
-						ruleAndeCause.selfRule=rule;
-						break;
-					}
-				}
+//		////////////////////在当前场景下规则可触发//////////////////
+//		for(DataTimeValue triggeredRule:triggeredRulesName) {
+//			if(triggeredRule.name.equals(ruleName)) {
+//				for(Rule rule:rules) {
+//					if(rule.getRuleName().equals(ruleName)) {
+//						ruleAndeCause.selfRule=rule;
+//						break;
+//					}
+//				}
+//				break;
+//			}
+//		}
+
+		for(Rule rule:rules) {
+			if(rule.getRuleName().equals(ruleName)) {
+				ruleAndeCause.selfRule=rule;
 				break;
 			}
 		}
+		
+		GraphNode ruleStartNode=new GraphNode();
+		for(GraphNode graphNode:graphNodes) {
+			if(graphNode.getName().equals(ruleName)) {
+				ruleStartNode=graphNode;
+				break;
+			}
+		}
+		Stack<GraphNode> stack=new Stack<GraphNode>();
+		if(!ruleStartNode.flag) {
+			stack.push(ruleStartNode);
+			ruleStartNode.flag=true;
+		}
+		while(!stack.isEmpty()) {
+			GraphNode graphNode=stack.pop();
+			if(graphNode.getShape().indexOf("hexagon")>=0) {
+				////////////如果当前节点是rule节点
+				
+				
+				for(GraphNodeArrow pArrow:graphNode.getpNodeList()) {
+					//////////p节点为trigger，全push进去
+					GraphNode pGraphNode=pArrow.getGraphNode();
+					stack.push(pGraphNode);
+				}
+			}else if(graphNode.getShape().indexOf("oval")>=0) {
+				//////////////如果当前节点是trigger节点
+				for(GraphNodeArrow pArrow:graphNode.getpNodeList()) {
+					//////////////专门push p节点中直接影响的action节点
+					if(pArrow.getColor()!=null && pArrow.getColor().indexOf("red")>=0 && pArrow.getStyle()==null) {
+						//////////红色实线
+						GraphNode pGraphNode=pArrow.getGraphNode();	
+						if(pGraphNode.getShape().indexOf("record")>=0) {
+							stack.push(pGraphNode);
+						}
+						
+					}
 
+					
+				}
+				
+			}else if(graphNode.getShape().indexOf("record")>=0) {
+				//////////////如果当前节点是action节点
+				for(GraphNodeArrow pArrow:graphNode.getpNodeList()) {
+					/////////////p节点都是rule节点，就不push了
+					GraphNode pGraphNode=pArrow.getGraphNode();
+//					stack.push(pGraphNode);
+					String pRuleName=pGraphNode.getName();
+					ruleAndeCause.causeRules.add(getRuleCauseRulesfromIFDGraph(graphNodes, rules, pRuleName));
+				}
+			}
+		}
+		
+		return ruleAndeCause;
+	}
+	/////////////////////////给定rule节点，获得该节点的causeRules///////////////////////////
+	public RuleAndCause getRuleCauseRulesfromIFDGraph(List<GraphNode> graphNodes,List<Rule> rules,String ruleName,List<DataTimeValue> triggeredRulesName) {
+		RuleAndCause ruleAndeCause=new RuleAndCause();
+//		////////////////////在当前场景下规则可触发//////////////////
+//		for(DataTimeValue triggeredRule:triggeredRulesName) {
+//			if(triggeredRule.name.equals(ruleName)) {
+//				for(Rule rule:rules) {
+//					if(rule.getRuleName().equals(ruleName)) {
+//						ruleAndeCause.selfRule=rule;
+//						break;
+//					}
+//				}
+//				break;
+//			}
+//		}
+
+		for(Rule rule:rules) {
+			if(rule.getRuleName().equals(ruleName)) {
+				ruleAndeCause.selfRule=rule;
+				break;
+			}
+		}
+		
 		GraphNode ruleStartNode=new GraphNode();
 		for(GraphNode graphNode:graphNodes) {
 			if(graphNode.getName().equals(ruleName)) {
@@ -581,6 +859,32 @@ public class SceneService {
 		return wholeAndCurrentChangeCauseRules;
 	}
 	
+	public List<List<StateChangeCauseRules>> getAllScenesFastChangeCauseRules(List<Scene> scenes,String deviceName){
+		List<List<StateChangeCauseRules>> stateChangeCauseRulesList=new ArrayList<List<StateChangeCauseRules>>();
+		for(Scene scene:scenes) {
+			List<StateChangeCauseRules> stateChangesCauseRules=new ArrayList<StateChangeCauseRules>();
+			for(DeviceAnalysResult deviceAnalysResult:scene.getDevicesAnalysResults()) {
+				if(deviceAnalysResult.deviceName.equals(deviceName)) {
+					if(deviceAnalysResult.statesChange.stateChangeFasts.size()>0) {
+						
+						List<DataTimeValue> triggeredRulesName=scene.getTriggeredRulesName();
+						DeviceStateName deviceStateName=deviceAnalysResult.deviceStateName;
+						for(StateChangeFast stateChangeFast:deviceAnalysResult.statesChange.stateChangeFasts) {
+							StateChangeCauseRules stateChangeCauseRules=new StateChangeCauseRules();
+							stateChangeCauseRules=getStateChangeCauseRules(stateChangeFast, triggeredRulesName, deviceStateName);
+							stateChangesCauseRules.add(stateChangeCauseRules);
+						}
+						
+						
+					}
+				}
+			}
+			stateChangeCauseRulesList.add(stateChangesCauseRules);
+			
+		}
+		return stateChangeCauseRulesList;
+	}
+	
 	//////////////////////////////////获得影响快速变化的规则/////////////////////////////
 	public WholeAndCurrentChangeCauseRule getStatesChangeFastCauseRules(List<StateChangeFast> stateChangeFasts,StateChangeFast stateChangeFast,List<DataTimeValue> triggeredRulesName,DeviceStateName deviceStateName){
 		
@@ -619,7 +923,7 @@ public class SceneService {
 					for(DataFunction dataFunction:ruleDataFunction.dataFunctions) {
 						double downValue=dataFunction.downValue;
 						double upValue=dataFunction.upValue;
-						if(downValue==1||upValue==1) {
+						if(downValue==1&&upValue==1) {
 							if(dataFunction.downTime<=stateChange.startTimeValue[0] && dataFunction.upTime>=stateChange.startTimeValue[0]) {
 								startCaueseRule.relativeRules.add(rule);
 								break;
@@ -642,7 +946,7 @@ public class SceneService {
 					for(DataFunction dataFunction:ruleDataFunction.dataFunctions) {
 						double downValue=dataFunction.downValue;
 						double upValue=dataFunction.upValue;
-						if(downValue==1||upValue==1) {
+						if(downValue==1&&upValue==1) {
 							if(dataFunction.downTime<=stateChange.middleTimeValue[0] && dataFunction.upTime>=stateChange.middleTimeValue[0]) {
 								middleCaueseRule.relativeRules.add(rule);
 								break;
@@ -665,7 +969,7 @@ public class SceneService {
 					for(DataFunction dataFunction:ruleDataFunction.dataFunctions) {
 						double downValue=dataFunction.downValue;
 						double upValue=dataFunction.upValue;
-						if(downValue==1||upValue==1) {
+						if(downValue==1&&upValue==1) {
 							if(dataFunction.downTime<=stateChange.endTimeValue[0] && dataFunction.upTime>=stateChange.endTimeValue[0]) {
 								endCaueseRule.relativeRules.add(rule);
 								break;

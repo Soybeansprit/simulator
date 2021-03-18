@@ -431,7 +431,7 @@ public class DataAnalysisService {
 	
 	
 	
-///////////////////////设备状态是否存在冲突////////////////
+///////////////////////设备状态是否存在冲突///会找到同一时刻冲突的所有状态/////////////
 	public DeviceConflict getStateConflict(DataTimeValue deviceTimeValue,DeviceStateName deviceStateName) {
 		DeviceConflict deviceConflict=new DeviceConflict();
 		deviceConflict.name=deviceStateName.deviceName;
@@ -448,6 +448,7 @@ public class DataAnalysisService {
 				double[] timeValue2=deviceTimeValue.timeValue.get(j);
 				String time2=timeValue2[0]+"";
 				String value2=timeValue2[1]+"";
+				////往后面找time相等而value不等的
 				if(time1.equals(time2) && !value1.equals(value2)) {
 					existConflict=true;
 					deviceConflict.hasConflict=true;
@@ -465,18 +466,31 @@ public class DataAnalysisService {
 						state[0]=value2;
 						conflictStates.add(state);
 					}
+					value1=value2;
 				}else if(!time1.equals(time2)) {
 					break;
 				}
 				
 				j++;
 			}
+			
 			if(existConflict) {
+				double[] finalTimeValue=deviceTimeValue.timeValue.get(j);
 				conflictTime.conflictTime=time1;
 				String[] state=new String[2];
-				state[1]=getStateName(deviceStateName,value1);
-				state[0]=value1;
-				conflictStates.add(state);
+				state[1]=getStateName(deviceStateName,finalTimeValue[1]+"");
+				boolean exist=false;
+				for(String[] stateName:conflictStates) {
+					if(stateName[1].equals(state[1])) {
+						exist=true;
+						break;
+					}
+				}
+				if(!exist) {
+					state[0]=finalTimeValue[1]+"";
+					conflictStates.add(state);
+				}
+				
 				conflictTime.conflictStates=conflictStates;
 				deviceConflict.conflictTimes.add(conflictTime);
 			}
@@ -546,7 +560,12 @@ public class DataAnalysisService {
 						stateName.stateValue=stateNum.trim();
 						stateName.stateName=stateNode.name;
 						deviceStateName.stateNames.add(stateName);
+						System.out.println(stateName.stateName);
 						for(Action action:actions) {
+							
+							System.out.println("action.toState");
+							System.out.println(action.toState);
+							
 							if(action.toState.equals(stateName.stateName)) {						
 								for(Rule rule:action.rules) {
 									boolean canTriggered=false;

@@ -423,6 +423,7 @@ public class RandomWay {
 						String[] guards=outTransition.guard.split("&&");
 						for(String guard:guards) {
 							guard=guard.trim();
+							//////////////////
 							if(guard.indexOf("time")>=0) {
 								TimeValue timeValue=new TimeValue();
 								timeValue.timeName=guard.substring(guard.indexOf("=")).substring("=".length());
@@ -487,6 +488,7 @@ public class RandomWay {
 				System.out.println(biddableTimeValue.name);
 				setTimeValues(biddableTimeValue.timeValues, allTime);
 				String biddableName=biddableTimeValue.name;
+				////////////////biddableInstance
 				if(biddableTimeValue.name.indexOf("Instance")>0) {
 					biddableName=biddableTimeValue.name.substring(0, biddableTimeValue.name.indexOf("Instance"));
 				}

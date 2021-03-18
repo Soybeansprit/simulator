@@ -50,7 +50,9 @@ public class IFDSceneService {
 		GenerateEnvModel geModel=new GenerateEnvModel();
 		List<TemplGraph> determineTemplGraphs=new ArrayList<TemplGraph>();
 		for(TemplGraph templGraph:templGraphs) {
-			if(templGraph.declaration.indexOf("biddable")>=0) {
+			System.out.println(templGraph.name);
+			System.out.println(templGraph.declaration);
+			if(templGraph.declaration.indexOf("biddable")>=0 && templGraph.declaration.indexOf("sensor")<0) {
 				List<List<TemplGraph>> allbpGraphs=new ArrayList<List<TemplGraph>>();
 				for(TemplGraphNode node:templGraph.templGraphNodes) {
 					if(node.style.equals("branchpoint")) {
@@ -212,7 +214,7 @@ public class IFDSceneService {
 			System.out.println("  "+parameter.getName());
 			System.out.println("  "+parameter.getInitValue());
 		}
-		
+		//////////////////////////////TODO How to set the initial value of distance
 		for(Parameter parameter:parameters) {
 			if(parameter.getInitValue()==null) {
 				if(parameter.getName().indexOf("distance")>=0) {
@@ -221,7 +223,8 @@ public class IFDSceneService {
 						parameter.setName(name);
 						parameter.setInitValue("{10.0,10.0,10.0,10.0,10.0}");
 					}else {
-						parameter.setInitValue("10.0");
+//						parameter.setInitValue("10.0");
+						parameter.setInitValue("60.0");
 					}
 				}
 				
@@ -377,7 +380,7 @@ public class IFDSceneService {
 				System.out.println("  "+parameter.getName());
 				System.out.println("  "+parameter.getInitValue());
 			}
-			
+			////////////////////对distance赋值，不同场景会不同的
 			for(Parameter parameter:parameters) {
 				if(parameter.getInitValue()==null) {
 					if(parameter.getName().indexOf("distance")>=0) {

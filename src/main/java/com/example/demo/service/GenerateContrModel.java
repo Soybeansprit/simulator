@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 @Service
 public class GenerateContrModel {
 
@@ -122,7 +123,7 @@ public class GenerateContrModel {
 			//end节点具有不变式t<=1
 			Element labelElement1=endElement.addElement("label");
 			labelElement1.addAttribute("kind", "invariant");
-			labelElement1.setText("t<=1");
+			labelElement1.setText("t<=0");
 			locationElements.add(0,endElement);
 			//end->start transition
 			Element transitionElement0=ruleElement.addElement("transition");
@@ -130,12 +131,12 @@ public class GenerateContrModel {
 			Element targetElement0=transitionElement0.addElement("target");
 			sourceElement0.addAttribute("ref", "id1");
 			targetElement0.addAttribute("ref","id0");
-			//end->start条件为t>=10
+			//end->start条件为t>=0
 			Element guardElement0=transitionElement0.addElement("label");
 			guardElement0.addAttribute("kind", "guard");
 			guardElement0.addAttribute("x", ""+(-300+10));
 			guardElement0.addAttribute("y", "-120");
-			guardElement0.setText("t>=1");
+			guardElement0.setText("t>=0");
 			//同时assignment t=0
 			Element assignmentElement0=transitionElement0.addElement("label");
 			assignmentElement0.addAttribute("kind", "assignment");
@@ -186,9 +187,9 @@ public class GenerateContrModel {
 				}else {
 					//如果节点为属性相关，则该节点类型为committed
 					//不满足条件的guard为条件的反转
-					conAndReverseCon=getConAndReverseCon(rule.getTrigger().get(i));
+					conAndReverseCon=getConAndReverseConAttr(rule.getTrigger().get(i),templGraphs);
 				}
-				
+				System.out.println(conAndReverseCon.get(1));
 				unsatGuardElement.setText(conAndReverseCon.get(1));
 				satGuardElement.setText(conAndReverseCon.get(0));
 				//label位置
@@ -333,7 +334,7 @@ public class GenerateContrModel {
 	/////////////////////////////////////2020.12.29///////////////////////////////
 	//获得属性条件和反转条件
 	//////String[0]-----condition String[1]-----reverseCondition
-	public List<String> getConAndReverseCon(String trigger){
+	public List<String> getConAndReverseConAttr(String trigger,List<TemplGraph> templGraphs){
 		List<String> conAndReverseCon=new ArrayList<String>();
 		String reverseCondition=null;
 		String condition=trigger;
@@ -357,21 +358,67 @@ public class GenerateContrModel {
 		}
 		//距离感应
 		if(reverseCondition.indexOf("distanceFrom")>=0) {
-			if(reverseCondition.indexOf(">")>0) {
-				reverseCondition=reverseCondition.replace(">", "Min>");
+			for(TemplGraph templGraph:templGraphs) {
+				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("return distanceFrom")>0) {
+					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
+						for(TemplTransition inTransition:templGraphNode.inTransitions) {
+							if(inTransition.assignment!=null) {
+								String[] assignments=inTransition.assignment.split(",");
+								for(String assignment:assignments) {
+									if(assignment.indexOf("get()")>0) {
+										assignment=assignment.trim();
+										String attribute=assignment.substring(0, assignment.indexOf("=")).trim();
+										if(reverseCondition.indexOf(">")>0) {
+											String originAttribute=reverseCondition.substring(0, reverseCondition.indexOf(">")).trim();
+											
+											reverseCondition=reverseCondition.replace(originAttribute, attribute);
+										}
+										if(reverseCondition.indexOf("<")>0) {
+											String originAttribute=reverseCondition.substring(0, reverseCondition.indexOf("<")).trim();
+											
+											reverseCondition=reverseCondition.replace(originAttribute, attribute);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
-			if(reverseCondition.indexOf("<")>0) {
-				reverseCondition=reverseCondition.replace("<","Min<");
-			}
+			
 		}
 		if(condition.indexOf("distanceFrom")>=0) {
-			if(condition.indexOf(">")>0) {
-				condition=condition.replace(">", "Min>");
+			for(TemplGraph templGraph:templGraphs) {
+				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("return distanceFrom")>0) {
+					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
+						for(TemplTransition inTransition:templGraphNode.inTransitions) {
+							if(inTransition.assignment!=null) {
+								String[] assignments=inTransition.assignment.split(",");
+								for(String assignment:assignments) {
+									if(assignment.indexOf("get()")>0) {
+										assignment=assignment.trim();
+										String attribute=assignment.substring(0, assignment.indexOf("=")).trim();
+										if(condition.indexOf(">")>0) {
+											String originAttribute=condition.substring(0, condition.indexOf(">")).trim();
+											
+											condition=condition.replace(originAttribute, attribute);
+										}
+										if(condition.indexOf("<")>0) {
+											String originAttribute=condition.substring(0, condition.indexOf("<")).trim();
+											
+											condition=condition.replace(originAttribute, attribute);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
-			if(condition.indexOf("<")>0) {
-				condition=condition.replace("<", "Min<");
-			}
+			
 		}
+		System.out.println(condition);
+		System.out.println(reverseCondition);
 		
 		conAndReverseCon.add(condition);
 		conAndReverseCon.add(reverseCondition);

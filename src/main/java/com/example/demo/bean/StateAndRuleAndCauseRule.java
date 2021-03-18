@@ -5,8 +5,8 @@ import java.util.List;
 
 public class StateAndRuleAndCauseRule {
 
-	public String stateValue=null;
-	public String stateName=null;
+	public String stateValue="";
+	public String stateName="";
 	public List<RuleAndCause> rulesAndCauseRules=new ArrayList<RuleAndCause>();
 	
 	public String getStateValue() {

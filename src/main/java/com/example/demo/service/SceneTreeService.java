@@ -8,6 +8,7 @@ import java.util.List;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.Action;
 import com.example.demo.bean.AttributeValue;
 import com.example.demo.bean.GenerateModelParameters;
 import com.example.demo.bean.IFDModelParameters;
@@ -207,7 +208,7 @@ public class SceneTreeService {
 			templGraphs.clear();
 			templGraphs=templGraphService.getTemplGraphs(filePath+"\\"+middleChangedModelFileName+".xml");
 			tDot.getIFD(templGraphs, rules, filePath+"\\"+ifdDotFileName);
-			
+			List<Action> actions=tDot.getActions(rules, templGraphs);
 			///////////////////////////analyse IFD////////////////////////////////
 			//获得IFD各节点graphNodes
 			//先获得IFD中的ruleNode
@@ -229,6 +230,7 @@ public class SceneTreeService {
 			generateModelParameters.scenesTree=scenesTree;	
 			generateModelParameters.attributes=attributes;
 			generateModelParameters.simulationDataNum=simulationDataNum;
+			generateModelParameters.actions=actions;
 //			generateModelParameters.controlledDevices=ifdModelParameters.controlledDevices;
 			
 			

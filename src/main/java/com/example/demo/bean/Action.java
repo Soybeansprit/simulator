@@ -7,6 +7,8 @@ public class Action {
 	public String action=null;
 	public String device=null;
 	public String toState=null;
+	public String value="";
+	 ////////////是不是会改变属性  attrVal[0]=attribute,attrVal[1]="'"||"=",attrVal[2]=value
 	public List<String[]> attrVal=new ArrayList<String[]>();
 	public List<Rule> rules=new ArrayList<Rule>();
 	public String getAction() {
@@ -38,5 +40,11 @@ public class Action {
 	}
 	public void setRules(List<Rule> rules) {
 		this.rules = rules;
+	}
+	public String getValue() {
+		return value;
+	}
+	public void setValue(String value) {
+		this.value = value;
 	}
 }

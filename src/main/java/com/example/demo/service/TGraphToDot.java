@@ -830,6 +830,8 @@ public class TGraphToDot {
 					Action action=new Action();
 					action.action=actionStr.trim();
 					action.rules.add(rule);
+					System.out.println("ruleName");
+					System.out.println(rule.getRuleName());
 					getAttrVal(templGraphs,action);
 					actions.add(action);
 				}
@@ -849,8 +851,11 @@ public class TGraphToDot {
 							if(inTransition.synchronisation.indexOf("?")>0) {
 								String synchronisation=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
 								if(synchronisation.equals(action)) {
+									//////////TODO///////action 
 									act.device=templGraph.name;
 									act.toState=stateNode.name;
+									System.out.println("act.toState");
+									System.out.println(act.toState);
 									flag=1;
 									//寻找该action对属性的影响
 									if(stateNode.invariant!=null) {
@@ -876,6 +881,8 @@ public class TGraphToDot {
 										for(String assignment:assignments) {
 											assignment=assignment.trim();
 											if(assignment.indexOf(deviceVal)>=0) {
+												String val=assignment.substring(assignment.indexOf("=")).substring("=".length());
+												act.value=val;
 												continue;
 											}
 											String[] attrVal=new String[3];

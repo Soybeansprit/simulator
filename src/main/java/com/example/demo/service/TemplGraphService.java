@@ -76,6 +76,9 @@ public class TemplGraphService {
 	public TemplGraph getTemplGraph(Template template) {
 		TemplGraph templGraph=new TemplGraph();
 		templGraph.name=template.name;
+//		System.out.println("template");
+//		System.out.println(template.name);
+//		System.out.println(template.declaration);
 		templGraph.declaration=template.declaration;
 		templGraph.parameter=template.parameter;
 		templGraph.init=template.init;

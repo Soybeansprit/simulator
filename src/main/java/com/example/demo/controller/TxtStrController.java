@@ -18,25 +18,35 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.bean.Action;
+import com.example.demo.bean.AllCauseRuleInput;
+import com.example.demo.bean.AllRuleAnalysisResult;
+import com.example.demo.bean.AllScenesAnalysisInput;
 import com.example.demo.bean.CauseRuleInput;
 import com.example.demo.bean.ConflictTime;
 import com.example.demo.bean.DataTimeValue;
+import com.example.demo.bean.DeviceAnalysResult;
 import com.example.demo.bean.DeviceStateName;
 import com.example.demo.bean.GenerateModelParameters;
 import com.example.demo.bean.GenerateModelParametersAndScene;
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.Rule;
+import com.example.demo.bean.RuleAndCause;
+import com.example.demo.bean.RuleCauseRuleInput;
 import com.example.demo.bean.RuleText;
+import com.example.demo.bean.RulesAllScenesSimulationTime;
 import com.example.demo.bean.RulesSceneSimulationTime;
 import com.example.demo.bean.Scene;
 import com.example.demo.bean.ScenesTree;
 import com.example.demo.bean.StateAndRuleAndCauseRule;
 import com.example.demo.bean.StateCauseRulesAndRelativeRules;
 import com.example.demo.bean.StateChangeCauseRuleInput;
+import com.example.demo.bean.StateChangeCauseRules;
 import com.example.demo.bean.StateChangeFast;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.WholeAndCurrentChangeCauseRule;
 import com.example.demo.service.GenerateSysDeclaration;
+import com.example.demo.service.RuleAnalysisService;
 import com.example.demo.service.RuleService;
 import com.example.demo.service.SceneService;
 import com.example.demo.service.SceneTreeService;
@@ -187,7 +197,7 @@ public class TxtStrController {
 	@RequestMapping(value="/simulateModels",method = RequestMethod.POST)
 	@ResponseBody
 	public GenerateModelParametersAndScene simulateModel(@RequestBody GenerateModelParameters generateModelParameters,String sceneName,String initModelName) throws DocumentException, IOException {
-			
+		////////////////////TODO 同时返回Actions	
 		SceneService sceneService=new SceneService();
 		GenerateModelParametersAndScene generateModelParametersAndScene=new GenerateModelParametersAndScene();
 		
@@ -211,6 +221,24 @@ public class TxtStrController {
 		scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,"D:\\workspace", initModelName, equivalentTime, intervalTime);
 
 		return scene;
+	}
+	
+	@RequestMapping(value="/getAllDeviceAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public List<Scene> getAllDeviceAnalysisResult(@RequestBody RulesAllScenesSimulationTime rulesAllScenesSimulationTime,String initModelName,String equivalentTime,String intervalTime) throws DocumentException, IOException {
+			
+		SceneService sceneService=new SceneService();
+		List<Scene> newScenes=new ArrayList<Scene>();
+		List<Scene> scenes=rulesAllScenesSimulationTime.scenes;
+		List<Rule> rules=rulesAllScenesSimulationTime.rules;
+		String simulationTime=rulesAllScenesSimulationTime.simulationTime;
+		for(Scene scene:scenes) {
+			scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,"D:\\workspace", initModelName, equivalentTime, intervalTime);
+			newScenes.add(scene);
+		}
+		
+
+		return newScenes;
 	}
 	
 //	@RequestMapping(value="/getConflictCauseAnalysisResult",method = RequestMethod.POST)
@@ -249,6 +277,72 @@ public class TxtStrController {
 		return stateAndRuleAndCauseRules;
 	}
 	
+	@RequestMapping(value="/getAllConflictCauseAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public List<List<StateAndRuleAndCauseRule>> getAllConflictCauseAnalysisResult(@RequestBody AllCauseRuleInput allCauseRuleInput,String initModelName) throws DocumentException, IOException {
+			
+		SceneService sceneService=new SceneService();
+		ToNode toNode=new ToNode();
+		
+		List<List<StateAndRuleAndCauseRule>> stateAndRuleAndCauseRulesList=new ArrayList<List<StateAndRuleAndCauseRule>>();
+		for(int i=0;i<allCauseRuleInput.conflictStateTimes.size();i++) {
+			List<StateAndRuleAndCauseRule> stateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+			CauseRuleInput causeRuleInput=new CauseRuleInput();
+			causeRuleInput.conflictStateTime=allCauseRuleInput.conflictStateTimes.get(i);
+			causeRuleInput.deviceStateName=allCauseRuleInput.deviceStateName;
+			causeRuleInput.triggeredRulesName=allCauseRuleInput.triggeredRulesName;
+			causeRuleInput.rules=allCauseRuleInput.rules;
+//			ConflictTime conflictStateTime=causeRuleInput.conflictStateTime;
+//			List<DataTimeValue> triggeredRulesName=causeRuleInput.triggeredRulesName;
+//			DeviceStateName deviceStateName=causeRuleInput.deviceStateName;
+//			List<Rule> rules=causeRuleInput.rules;
+//			stateAndRuleAndCauseRules=sceneService.getDeviceConflictCauseRules(conflictStateTime, triggeredRulesName, deviceStateName, rules, graphNodes);
+			stateAndRuleAndCauseRules=getConflictCauseAnalysisResult(causeRuleInput, initModelName);
+			stateAndRuleAndCauseRulesList.add(stateAndRuleAndCauseRules);
+		}
+		
+		
+		
+		
+		return stateAndRuleAndCauseRulesList;
+	}
+	
+	@RequestMapping(value="/getAllScenesConflictCauseAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public List<List<StateAndRuleAndCauseRule>> getAllScenesConflictCauseAnalysisResult(@RequestBody AllScenesAnalysisInput allScenesConflictInput,String deviceName,String initModelName) throws DocumentException, IOException {
+			
+		SceneService sceneService=new SceneService();
+		ToNode toNode=new ToNode();
+		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
+		List<Rule> rules=new ArrayList<Rule>();
+		List<Scene> scenes=new ArrayList<Scene>();
+		List<List<StateAndRuleAndCauseRule>> stateAndRuleAndCauseRulesList=new ArrayList<List<StateAndRuleAndCauseRule>>();
+		graphNodes=toNode.getGraphNodes("D:\\workspace", initModelName);
+		rules=allScenesConflictInput.rules;
+		scenes=allScenesConflictInput.scenes;
+		
+		for(Scene scene:scenes) {
+			List<StateAndRuleAndCauseRule> stateAndRuleAndCauseRules=new ArrayList<StateAndRuleAndCauseRule>();
+			for(DeviceAnalysResult deviceAnalysResult:scene.getDevicesAnalysResults()) {
+				if(deviceAnalysResult.deviceName.equals(deviceName)) {
+					if(deviceAnalysResult.statesConflict.hasConflict) {
+						
+						List<DataTimeValue> triggeredRulesName=scene.getTriggeredRulesName();
+						DeviceStateName deviceStateName=deviceAnalysResult.deviceStateName;
+						for(ConflictTime conflictTime:deviceAnalysResult.statesConflict.conflictTimes) {
+							stateAndRuleAndCauseRules=sceneService.getDeviceConflictCauseRules(conflictTime, triggeredRulesName, deviceStateName, rules, graphNodes);
+							
+						}
+						break;
+					}
+				}
+			}
+			stateAndRuleAndCauseRulesList.add(stateAndRuleAndCauseRules);
+		}
+		
+		return stateAndRuleAndCauseRulesList;
+	}
+	
 	@RequestMapping(value="/getStateChangeFastCauseAnalysisResult",method = RequestMethod.POST)
 	@ResponseBody
 	public WholeAndCurrentChangeCauseRule getStateChangeFastCauseAnalysisResult(@RequestBody StateChangeCauseRuleInput stateChangeCauseRuleInput) throws DocumentException, IOException {
@@ -265,5 +359,61 @@ public class TxtStrController {
 		
 		return wholeAndCurrentChangeCauseRule;
 	}
+	
+	@RequestMapping(value="/getAllScenesFastChangeCauseAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public List<List<StateChangeCauseRules>> getAllScenesChangeFastCauseAnalysisResult(@RequestBody List<Scene> scenes,String deviceName) throws DocumentException, IOException {
+			
+		SceneService sceneService=new SceneService();
+		
+		List<List<StateChangeCauseRules>> stateChangeCauseRulesList=sceneService.getAllScenesFastChangeCauseRules(scenes, deviceName);
+		
+		return stateChangeCauseRulesList;
+	}
+	
+	
+	@RequestMapping(value="/getAllScenesRulesAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public AllRuleAnalysisResult getAllScenesRulesAnalysisResult(@RequestBody AllScenesAnalysisInput allScenesAnalysisInput,String initFileName,String simulationTime,String equivalentTime,String intervalTime) throws DocumentException, IOException {
+			
+		
+		RuleAnalysisService ruleAnalysisService=new RuleAnalysisService();
+		List<Scene> scenes=new ArrayList<Scene>();
+		List<Rule> rules=new ArrayList<Rule>();
+		AllRuleAnalysisResult allRuleAnalysisResult=new AllRuleAnalysisResult();
+		scenes=allScenesAnalysisInput.scenes;
+		rules=allScenesAnalysisInput.rules;
+		System.out.println(" initFileName:"+initFileName+" simulationTime:"+simulationTime+" equivalentTime:"+equivalentTime+" intervalTime:"+intervalTime);
+		allRuleAnalysisResult=ruleAnalysisService.getAllRuleAnalysis(scenes, rules, "D:\\workspace", initFileName, simulationTime, equivalentTime, intervalTime);
+		
+		
+		return allRuleAnalysisResult;
+	}
+	
+	@RequestMapping(value="/getRuleCauseRule",method = RequestMethod.POST)
+	@ResponseBody
+	public List<RuleAndCause> getRuleCauseRule(@RequestBody RuleCauseRuleInput ruleCauseRuleInput,String initFileName) throws DocumentException, IOException {
+			
+		
+		SceneService sceneService=new SceneService();
+		ToNode toNode=new ToNode();
+		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
+		List<Rule> causeRules=ruleCauseRuleInput.causeRules;
+		List<Rule> rules=ruleCauseRuleInput.rules;
+		List<RuleAndCause> rulesAndCause=new ArrayList<RuleAndCause>();
+		graphNodes=toNode.getGraphNodes("D:\\workspace", initFileName);
+		for(Rule rule:causeRules) {
+			RuleAndCause ruleAndCause=sceneService.getRuleCauseRulesfromIFDGraph(graphNodes, rules, rule.getRuleName());
+			rulesAndCause.add(ruleAndCause);
+			for(GraphNode graphNode:graphNodes) {
+				graphNode.flag=false;
+			}
+		}
+		
+		
+		
+		return rulesAndCause;
+	}
+
 
 }

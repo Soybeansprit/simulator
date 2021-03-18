@@ -281,11 +281,14 @@ public class GenerateSysDeclaration {
 		String system="system ";
 		for(TemplGraph templGraph:templGraphs) {
 			if(templGraph.parameter==null) {
-				if(templGraph.name.indexOf("sensor")>0) {
-					if(templGraph.name.indexOf("distance")<0) {
-						continue;
+				if(templGraph.declaration!=null) {
+					if(templGraph.declaration.indexOf("sensor")>0) {
+						if(templGraph.declaration.indexOf("return distance")<0) {
+							continue;
+						}
 					}
 				}
+				
 				system=system+templGraph.name+",";
 			}
 		}
@@ -355,6 +358,9 @@ public class GenerateSysDeclaration {
 	public List<Parameter> getParameters(List<TemplGraph> templGraphs, List<String[]> allAttributeValue){
 		List<Parameter> parameters=new ArrayList<Parameter>();
 		for(String[] attributeValue:allAttributeValue) {
+			System.out.println("attribute:");
+			System.out.println(attributeValue[0]);
+			System.out.println(attributeValue[1]);
 			Parameter parameter=new Parameter();
 			parameter.setName(attributeValue[0]);
 			parameter.setInitValue(attributeValue[1]);

@@ -10,6 +10,7 @@ public class GenerateModelParameters {
 	public List<String> attributes=new ArrayList<String>();
 	public ScenesTree scenesTree=new ScenesTree(); 
 	public List<Rule> rules=new ArrayList<Rule>();
+	public List<Action> actions=new ArrayList<Action>();
 	public int simulationDataNum=0;
 
 //	public List<TemplGraph> getControlledDevices() {
@@ -41,5 +42,11 @@ public class GenerateModelParameters {
 	}
 	public void setSimulationDataNum(int simulationDataNum) {
 		this.simulationDataNum = simulationDataNum;
+	}
+	public List<Action> getActions() {
+		return actions;
+	}
+	public void setActions(List<Action> actions) {
+		this.actions = actions;
 	}
 }
