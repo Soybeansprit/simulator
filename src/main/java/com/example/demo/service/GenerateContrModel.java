@@ -114,39 +114,39 @@ public class GenerateContrModel {
 			Element initElement=ruleElement.addElement("init");
 			initElement.addAttribute("ref", "id0");
 			List<Element> locationElements=ruleElement.elements("location");
-			//最后一个节点
-			Element endElement=DocumentHelper.createElement("location");
-			endElement.addAttribute("id", "id1");
-			//end节点位置
-			endElement.addAttribute("x", ""+(-300+150));
-			endElement.addAttribute("y", "-100");
-			//end节点具有不变式t<=1
-			Element labelElement1=endElement.addElement("label");
-			labelElement1.addAttribute("kind", "invariant");
-			labelElement1.setText("t<=0");
-			locationElements.add(0,endElement);
-			//end->start transition
-			Element transitionElement0=ruleElement.addElement("transition");
-			Element sourceElement0=transitionElement0.addElement("source");
-			Element targetElement0=transitionElement0.addElement("target");
-			sourceElement0.addAttribute("ref", "id1");
-			targetElement0.addAttribute("ref","id0");
-			//end->start条件为t>=0
-			Element guardElement0=transitionElement0.addElement("label");
-			guardElement0.addAttribute("kind", "guard");
-			guardElement0.addAttribute("x", ""+(-300+10));
-			guardElement0.addAttribute("y", "-120");
-			guardElement0.setText("t>=0");
-			//同时assignment t=0
-			Element assignmentElement0=transitionElement0.addElement("label");
-			assignmentElement0.addAttribute("kind", "assignment");
-			assignmentElement0.addAttribute("x", ""+(-300+10));
-			assignmentElement0.addAttribute("y", "-90");
-			assignmentElement0.setText("t=0");
-			//nail为了美观
-			Element nailElement0=transitionElement0.addElement("nail");
-			nailElement0.addAttribute("x", "-300");
-			nailElement0.addAttribute("y", "-100");
+//			//最后一个节点
+//			Element endElement=DocumentHelper.createElement("location");
+//			endElement.addAttribute("id", "id1");
+//			//end节点位置
+//			endElement.addAttribute("x", ""+(-300+150));
+//			endElement.addAttribute("y", "-100");
+//			//end节点具有不变式t<=0
+//			Element labelElement1=endElement.addElement("label");
+//			labelElement1.addAttribute("kind", "invariant");
+//			labelElement1.setText("t<=0");
+//			locationElements.add(0,endElement);
+//			//end->start transition
+//			Element transitionElement0=ruleElement.addElement("transition");
+//			Element sourceElement0=transitionElement0.addElement("source");
+//			Element targetElement0=transitionElement0.addElement("target");
+//			sourceElement0.addAttribute("ref", "id1");
+//			targetElement0.addAttribute("ref","id0");
+//			//end->start条件为t>=0
+//			Element guardElement0=transitionElement0.addElement("label");
+//			guardElement0.addAttribute("kind", "guard");
+//			guardElement0.addAttribute("x", ""+(-300+10));
+//			guardElement0.addAttribute("y", "-120");
+//			guardElement0.setText("t>=0");
+//			//同时assignment t=0
+//			Element assignmentElement0=transitionElement0.addElement("label");
+//			assignmentElement0.addAttribute("kind", "assignment");
+//			assignmentElement0.addAttribute("x", ""+(-300+10));
+//			assignmentElement0.addAttribute("y", "-90");
+//			assignmentElement0.setText("t=0");
+//			//nail为了美观
+//			Element nailElement0=transitionElement0.addElement("nail");
+//			nailElement0.addAttribute("x", "-300");
+//			nailElement0.addAttribute("y", "-100");
 			List<Element> transitionElements=ruleElement.elements("transition");
 			//中间节点
 			int count=1; //节点计数
@@ -190,6 +190,7 @@ public class GenerateContrModel {
 					conAndReverseCon=getConAndReverseConAttr(rule.getTrigger().get(i),templGraphs);
 				}
 				System.out.println(conAndReverseCon.get(1));
+				System.out.println(conAndReverseCon.get(0));
 				unsatGuardElement.setText(conAndReverseCon.get(1));
 				satGuardElement.setText(conAndReverseCon.get(0));
 				//label位置
@@ -202,7 +203,7 @@ public class GenerateContrModel {
 				//assignment label的位置
 				unsatAssElement.addAttribute("x", ""+(-300+10));
 				unsatAssElement.addAttribute("y", ""+(count*90-20));
-				unsatAssElement.setText("t=0,"+rule.getRuleName()+"=0");
+				unsatAssElement.setText(rule.getRuleName()+"=0");
 				transitionElements.add(0,unsatTransitionElement);
 				//增加两个nail
 				Element unsatNailElement0=unsatTransitionElement.addElement("nail");
@@ -220,16 +221,19 @@ public class GenerateContrModel {
 					Element firstTargetElement=firstTransitionElement.addElement("target");
 					firstSourceElement.addAttribute("ref", "id0");
 					firstTargetElement.addAttribute("ref", "id"+(1+count));
-					Element guardElement=firstTransitionElement.addElement("label");
+					Element guardElement=firstTransitionElement.addElement("label");					
 					guardElement.addAttribute("kind", "guard");
 					guardElement.setText("t>=1");
+					Element assignmentElement=firstTargetElement.addElement("label");
+					assignmentElement.addAttribute("kind", "assignment");
+					assignmentElement.setText("t=0");
 					transitionElements.add(0,firstTransitionElement);
 				}
 				if(i==rule.getTrigger().size()-1) {
 					//最后一个trigger满足
 					Element assignmentElement=satTransitionElement.addElement("label");
 					assignmentElement.addAttribute("kind", "assignment");
-					assignmentElement.setText("t=0,"+rule.getRuleName()+"=1");
+					assignmentElement.setText(rule.getRuleName()+"=1");
 				}				
 				transitionElements.add(0,satTransitionElement);				
 				count++;
@@ -299,7 +303,7 @@ public class GenerateContrModel {
 				if(i==rule.getAction().size()-1) {
 					//最后一个action节点与end连接
 					sourceElement.addAttribute("ref", "id"+(1+count));
-					targetElement.addAttribute("ref", "id1");
+					targetElement.addAttribute("ref", "id0");
 					Element actionSynElement=transitionElement.addElement("label");
 					actionSynElement.addAttribute("kind", "synchronisation");
 					actionSynElement.addAttribute("x", ""+(-150+50));
@@ -308,6 +312,10 @@ public class GenerateContrModel {
 					Element finalNailElement=transitionElement.addElement("nail");
 					finalNailElement.addAttribute("x", ""+(-300+count*150));
 					finalNailElement.addAttribute("y", "-100");
+					
+					Element nailElement0=transitionElement.addElement("nail");
+					nailElement0.addAttribute("x", "-300");
+					nailElement0.addAttribute("y", "-100");
 				}
 				
 				
@@ -358,8 +366,13 @@ public class GenerateContrModel {
 		}
 		//距离感应
 		if(reverseCondition.indexOf("distanceFrom")>=0) {
+//			System.out.println();
+//			System.out.println();
+//			System.out.println();
+//			System.out.println();
+//			System.out.println(reverseCondition);
 			for(TemplGraph templGraph:templGraphs) {
-				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("return distanceFrom")>0) {
+				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("distance")>0) {
 					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
 						for(TemplTransition inTransition:templGraphNode.inTransitions) {
 							if(inTransition.assignment!=null) {
@@ -370,13 +383,21 @@ public class GenerateContrModel {
 										String attribute=assignment.substring(0, assignment.indexOf("=")).trim();
 										if(reverseCondition.indexOf(">")>0) {
 											String originAttribute=reverseCondition.substring(0, reverseCondition.indexOf(">")).trim();
+//											System.out.println();
+//											System.out.println();
+//											System.out.println("originAtt");
+//											System.out.println(originAttribute);
 											
 											reverseCondition=reverseCondition.replace(originAttribute, attribute);
+//											System.out.println(reverseCondition);
 										}
 										if(reverseCondition.indexOf("<")>0) {
+//											System.out.println();
 											String originAttribute=reverseCondition.substring(0, reverseCondition.indexOf("<")).trim();
-											
+//											System.out.println("originAtt");
+//											System.out.println(originAttribute);
 											reverseCondition=reverseCondition.replace(originAttribute, attribute);
+//											System.out.println(reverseCondition);
 										}
 									}
 								}
@@ -389,7 +410,7 @@ public class GenerateContrModel {
 		}
 		if(condition.indexOf("distanceFrom")>=0) {
 			for(TemplGraph templGraph:templGraphs) {
-				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("return distanceFrom")>0) {
+				if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 && templGraph.declaration.indexOf("distance")>0) {
 					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
 						for(TemplTransition inTransition:templGraphNode.inTransitions) {
 							if(inTransition.assignment!=null) {
@@ -400,13 +421,19 @@ public class GenerateContrModel {
 										String attribute=assignment.substring(0, assignment.indexOf("=")).trim();
 										if(condition.indexOf(">")>0) {
 											String originAttribute=condition.substring(0, condition.indexOf(">")).trim();
-											
+//											System.out.println();
+//											System.out.println("originAtt");
+//											System.out.println(originAttribute);
 											condition=condition.replace(originAttribute, attribute);
+//											System.out.println(condition);
 										}
 										if(condition.indexOf("<")>0) {
 											String originAttribute=condition.substring(0, condition.indexOf("<")).trim();
-											
+//											System.out.println();
+//											System.out.println("originAtt");
+//											System.out.println(originAttribute);
 											condition=condition.replace(originAttribute, attribute);
+//											System.out.println(condition);
 										}
 									}
 								}

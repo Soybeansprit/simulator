@@ -34,6 +34,7 @@ import com.example.demo.bean.StatesChange;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
 import com.example.demo.bean.TemplTransition;
+import com.example.demo.bean.TriggeredAndNotTriggered;
 
 
 
@@ -46,7 +47,43 @@ public class DataAnalysisService {
 
 	}
 	
-
+	public List<DataTimeValue> getAllDataTimeValue(String simulationResultString){
+//		System.out.println(simulationResultString);
+		List<DataTimeValue> dataTimeValues=new ArrayList<DataTimeValue>();
+		List<String> datasValues=Arrays.asList(simulationResultString.split("\n"));
+		for(int i=0;i<datasValues.size();) {
+			String dataValues=datasValues.get(i);
+			if(dataValues.indexOf(":")>0 && dataValues.indexOf("[0]")<0) {
+				DataTimeValue dataTimeValue=new DataTimeValue();
+				String dataName=dataValues.substring(0, dataValues.indexOf(":"));
+				dataTimeValue.name=dataName;
+//				System.out.println(dataName);
+				i++;
+				String valueString=datasValues.get(i);
+				if(valueString.indexOf("[0]:")>=0) {
+					
+					valueString=valueString.substring("[0]:".length());
+//					System.out.println(valueString);
+					List<String> timeValues=Arrays.asList(valueString.split(" \\("));
+					for(String timeValueStr:timeValues) {
+						if(timeValueStr.indexOf(",")>0) {
+							timeValueStr=timeValueStr.substring(0, timeValueStr.indexOf(")"));
+							String[] splitTimeValue=timeValueStr.split(",");
+							double[] timeValue=new double[2];
+							timeValue[0]=Double.parseDouble(splitTimeValue[0]);
+//							System.out.println(timeValue[0]);
+							timeValue[1]=Double.parseDouble(splitTimeValue[1]);
+//							System.out.println(timeValue[1]);
+							dataTimeValue.timeValue.add(timeValue);
+						}
+					}
+				}
+				dataTimeValues.add(dataTimeValue);
+			}
+			i++;
+		}
+		return dataTimeValues;
+	}
 	
 	///////////////////////////////从csv文件中读取某仿真数据的时间值DataTimeValue//////////////////
 	public DataTimeValue getDataTimeValue(String csvFilePath) throws IOException{
@@ -71,6 +108,7 @@ public class DataAnalysisService {
 		fr.close();
 		return dataTimeValue;
 	}
+	
 	
 	//获得输出文件中的各属性时间点和值
 	public List<DataTimeValue> getDataTimes(String dataFilePath) throws IOException{
@@ -239,6 +277,30 @@ public class DataAnalysisService {
 		StatesChange statesChange=getStateChangeRate(nameDataFunction, allTime, equivalentTime, intervalTime);
 		deviceAnalysResult.statesChange=statesChange;
 		return deviceAnalysResult;
+	}
+	
+	public TriggeredAndNotTriggered getSceneTriggeredAndNotTriggeredRules(List<DataTimeValue> dataTimeValues) {
+		TriggeredAndNotTriggered triggeredAndNotTriggered=new TriggeredAndNotTriggered();
+		List<DataTimeValue> triggeredRules=new ArrayList<DataTimeValue>();
+		List<String> cannotTriggeredRules=new ArrayList<String>();
+		for(DataTimeValue dataTimeValue:dataTimeValues) {
+			if(dataTimeValue.name.indexOf("rule")>=0) {
+				boolean canTriggered=false;
+				for(double[] timeValue:dataTimeValue.timeValue) {
+					if(timeValue[1]>0) {
+						canTriggered=true;
+						triggeredRules.add(dataTimeValue);
+						break;
+					}
+				}
+				if(!canTriggered) {
+					cannotTriggeredRules.add(dataTimeValue.name);
+				}
+			}
+		}
+		triggeredAndNotTriggered.cannotTriggeredRules=cannotTriggeredRules;
+		triggeredAndNotTriggered.triggeredRules=triggeredRules;
+		return triggeredAndNotTriggered;
 	}
 	
 	////////////////////////可以被触发的规则//////////////////////

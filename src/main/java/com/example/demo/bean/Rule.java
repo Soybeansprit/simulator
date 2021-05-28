@@ -40,4 +40,48 @@ public class Rule {
 	public void setTriggers(String triggers) {
 		this.triggers = triggers;
 	}
+	
+	public boolean contentEquals(Rule rule) {
+		if(ruleName.equals(rule.getRuleName())) {
+			return true;
+		}
+		if(ruleContent.equals(rule.getRuleContent())) {
+			return true;
+		}
+		if(trigger.size()==rule.getTrigger().size()&&action.size()==rule.getAction().size()) {
+			boolean equal=true;
+			for(String tri:trigger) {
+				boolean exist=false;
+				for(String tri2:rule.getTrigger()) {
+					if(tri.equals(tri2)) {
+						exist=true;
+						break;
+					}
+				}
+				if(!exist) {
+					equal=false;
+					break;
+				}
+			}
+			if(equal) {
+				for(String act:action) {
+					boolean exist=false;
+					for(String act2:rule.getAction()) {
+						if(act.equals(act2)) {
+							exist=true;
+							break;
+						}
+					}
+					if(!exist) {
+						equal=false;
+						break;
+					}
+				}
+			}
+			if(equal) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

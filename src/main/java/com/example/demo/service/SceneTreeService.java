@@ -48,7 +48,7 @@ public class SceneTreeService {
 	
 	/////////////////////////////获得场景树的数据并生成所有场景仿真模型/////////////////////////////////	
 	////////////////////////////////////////2021/2/27//////////////////////////////////////
-	public ScenesTree getScenesTreeAndRandomAllModels(List<Rule> rules,List<String> attributes,List<Parameter> parameters,List<String> instances,
+	public ScenesTree getScenesTreeAndRandomAllModels(List<Rule> rules,List<Action> actions,List<Trigger> triggers,List<String> attributes,List<Parameter> parameters,List<String> instances,
 			String filePath,String middleChangedModelFileName,String finalRandomSameModelName,List<TemplGraph> templGraphs,String simulationTime,String parentName) throws DocumentException, IOException {
 		ScenesTree scenesTree=new ScenesTree();
 		
@@ -56,7 +56,7 @@ public class SceneTreeService {
 		GenerateSysDeclaration gSysDeclar=new GenerateSysDeclaration();
 		TGraphToDot tDot=new TGraphToDot();
 		
-		List<Trigger> triggers=tDot.getTriggers(rules);
+//		List<Trigger> triggers=tDot.getTriggers(rules);
 		List<AttrPiecewise> attrPiecewises=rWay.getAttrPiecewises(attributes, triggers);
 		int allPieceNum=rWay.getAttrPieceNum(attrPiecewises);
 		scenesTree.setName(parentName);
@@ -87,14 +87,14 @@ public class SceneTreeService {
 			String finalRandomModelName=finalRandomSameModelName+i+".xml";
 			
 			gSysDeclar.globalDeclaration(filePath+"\\"+middleChangedModelFileName+".xml",filePath+"\\"+finalRandomModelName, parameters);
-			gSysDeclar.modelDeclaration(filePath+"\\"+finalRandomModelName,filePath+"\\"+finalRandomModelName, templGraphs,instances);		
+			gSysDeclar.modelDeclaration(filePath+"\\"+finalRandomModelName,filePath+"\\"+finalRandomModelName, templGraphs,instances,actions,triggers);		
 			gSysDeclar.setQuery(filePath+"\\"+finalRandomModelName,filePath+"\\"+finalRandomModelName, parameters,simulationTime);
 		}
 		return scenesTree;
 	}
 	
 	/////////////////////////////获得场景树的数据并生成所有场景仿真模型/////////////////////////////////
-	public ScenesTree getScenesTreeAndRandomAllModels(List<String> attributes,List<Trigger> triggers,List<Parameter> parameters,String parentName,String finalPath,
+	public ScenesTree getScenesTreeAndRandomAllModels(List<String> attributes,List<Action> actions,List<Trigger> triggers,List<Parameter> parameters,String parentName,String finalPath,
 			String changedModelFilePathName,List<TemplGraph> templGraphs,List<String> instances,String allTime) throws DocumentException, IOException {
 		ScenesTree scenesTree=new ScenesTree();
 		RandomWay rWay=new RandomWay();
@@ -129,7 +129,7 @@ public class SceneTreeService {
 			File finalModelRandomFile=new File(finalModelPathNameRandom);
 			if(!finalModelRandomFile.exists()) {
 				gSysDeclar.globalDeclaration(changedModelFilePathName,finalModelPathNameRandom, parameters);
-				gSysDeclar.modelDeclaration(finalModelPathNameRandom,finalModelPathNameRandom, templGraphs,instances);		
+				gSysDeclar.modelDeclaration(finalModelPathNameRandom,finalModelPathNameRandom, templGraphs,instances,actions,triggers);		
 				gSysDeclar.setQuery(finalModelPathNameRandom,finalModelPathNameRandom, parameters,String.valueOf(allTime));
 			}
 			
@@ -195,7 +195,8 @@ public class SceneTreeService {
 			//最终的确定模型，写入xml文件中
 			//删除最初的不确定模型
 			///////////////////////////////////////////////////////////////
-			ifdSceneService.getDetermineEnvModel(templGraphs, filePath+"\\"+middleChangedModelFileName+".xml");
+			
+//			ifdSceneService.getDetermineEnvModel(templGraphs, filePath+"\\"+middleChangedModelFileName+".xml");
 			
 			/////////////////////////生成IFD///////////////////////////////
 			//getIFD方法
@@ -209,6 +210,7 @@ public class SceneTreeService {
 			templGraphs=templGraphService.getTemplGraphs(filePath+"\\"+middleChangedModelFileName+".xml");
 			tDot.getIFD(templGraphs, rules, filePath+"\\"+ifdDotFileName);
 			List<Action> actions=tDot.getActions(rules, templGraphs);
+			List<Trigger> triggers=tDot.getTriggers(rules);
 			///////////////////////////analyse IFD////////////////////////////////
 			//获得IFD各节点graphNodes
 			//先获得IFD中的ruleNode
@@ -219,14 +221,14 @@ public class SceneTreeService {
 			
 			//////////////////生成ifd仿真模型////////////////////////////
 			
-			IFDModelParameters ifdModelParameters=ifdSceneService.generateIFDModel(filePath+"\\"+middleChangedModelFileName+".xml", filePath+"\\"+finalIfdModelName+".xml", filePath+"\\"+ifdDotFileName, templGraphs, rules, simulationTime);
+			IFDModelParameters ifdModelParameters=ifdSceneService.generateIFDModel(filePath+"\\"+middleChangedModelFileName+".xml", filePath+"\\"+finalIfdModelName+".xml", filePath+"\\"+ifdDotFileName, templGraphs, rules,actions,triggers, simulationTime);
 			
 			///////////////////生成各仿真场景/////////////////////////////////
 			List<Parameter> parameters=ifdModelParameters.parameters;
 			List<String> instances=ifdModelParameters.instances;
 			List<String> attributes=ifdModelParameters.attributes;
 			int simulationDataNum=gSysDeclaration.getSimulateDataNum(filePath+"\\"+finalIfdModelName+".xml");
-			ScenesTree scenesTree=getScenesTreeAndRandomAllModels(rules, attributes, parameters, instances, filePath, middleChangedModelFileName, finalRandomSameModelName, templGraphs, simulationTime, initFileModelName);
+			ScenesTree scenesTree=getScenesTreeAndRandomAllModels(rules,actions,triggers, attributes, parameters, instances, filePath, middleChangedModelFileName, finalRandomSameModelName, templGraphs, simulationTime, initFileModelName);
 			generateModelParameters.scenesTree=scenesTree;	
 			generateModelParameters.attributes=attributes;
 			generateModelParameters.simulationDataNum=simulationDataNum;
@@ -327,7 +329,8 @@ public class SceneTreeService {
 		///////////////////////所有随机场景模型/////////////////////
 		List<String> attributes=setParameter.getCausalAttributes(templGraphs);
 		List<Trigger> triggers=tDot.getTriggers(rules);
-		scenesTree=getScenesTreeAndRandomAllModels(attributes, triggers, parameters, parentName, finalModelPath, changedModelFilePathName, templGraphs, instances, String.valueOf(allTime));
+		List<Action> actions=tDot.getActions(rules, templGraphs);
+		scenesTree=getScenesTreeAndRandomAllModels(attributes,actions, triggers, parameters, parentName, finalModelPath, changedModelFilePathName, templGraphs, instances, String.valueOf(allTime));
 		return scenesTree;
 	}
 	

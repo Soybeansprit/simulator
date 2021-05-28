@@ -830,9 +830,9 @@ public class TGraphToDot {
 					Action action=new Action();
 					action.action=actionStr.trim();
 					action.rules.add(rule);
-					System.out.println("ruleName");
-					System.out.println(rule.getRuleName());
-					getAttrVal(templGraphs,action);
+//					System.out.println("ruleName");
+//					System.out.println(rule.getRuleName());
+					action=getAttrVal(templGraphs,action);
 					actions.add(action);
 				}
 			}
@@ -840,7 +840,7 @@ public class TGraphToDot {
 		return actions;
 	}
 	//获得action影响以及对应的device
-	public void getAttrVal(List<TemplGraph> templGraphs,Action act){
+	public Action getAttrVal(List<TemplGraph> templGraphs,Action act){
 		String action=act.action;
 		int flag=0;
 		for(TemplGraph templGraph:templGraphs) {
@@ -854,6 +854,7 @@ public class TGraphToDot {
 									//////////TODO///////action 
 									act.device=templGraph.name;
 									act.toState=stateNode.name;
+									System.out.println(act.device);
 									System.out.println("act.toState");
 									System.out.println(act.toState);
 									flag=1;
@@ -910,6 +911,7 @@ public class TGraphToDot {
 				break;
 			}
 		}
+		return act;
 	}
 	///////////////////////////////////////2020.12.20///////////////////////////////
 	//判断trigger和action节点是不是属于同一个rule
@@ -1036,7 +1038,8 @@ public class TGraphToDot {
 				parse.write(graphvizFile, ruleToActionDot, true);
 			}
 			//actionToDeviceDot
-			String actionToDevice=action.action+"->"+action.device+"[color=\"lemonchiffon3\"]";
+			//2021/5/24 更改了action和device节点之间的关系
+			String actionToDevice=action.device+"->"+action.action+"[color=\"lemonchiffon3\"]";
 			parse.write(graphvizFile, actionToDevice, true);
 		}
 		
@@ -1117,10 +1120,15 @@ public class TGraphToDot {
 								//正影响
 								Double triVal=Double.parseDouble(trigger.attrVal[2]);
 								Double othTriVal=Double.parseDouble(otherTrigger.attrVal[2]);
-								if(triVal<=othTriVal) {
+								if(triVal<othTriVal) {
 									//更改颜色为green2，同时删除“+”
 									String triggerToTriggerDot=otherTrigger.triggerNum+"->"+trigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
 									parse.write(graphvizFile, triggerToTriggerDot, true);
+								}else if (trigger.attrVal[2].equals(otherTrigger.attrVal[2])) {
+									if(otherTrigger.trigger.indexOf(">=")>0) {
+										String triggerToTriggerDot=trigger.triggerNum+"->"+otherTrigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+										parse.write(graphvizFile, triggerToTriggerDot, true);
+									}
 								}
 							}
 //							if(otherTrigger.attrVal[1].equals("<")) {
@@ -1131,7 +1139,7 @@ public class TGraphToDot {
 //									parse.write(graphvizFile, triggerToTriggerDot, true);
 //								}
 //							}
-						}
+						}else
 						if(trigger.attrVal[1].equals("<")) {
 //							if(otherTrigger.attrVal[1].equals(">")) {
 //								Double triVal=Double.parseDouble(trigger.attrVal[2]);
@@ -1144,9 +1152,14 @@ public class TGraphToDot {
 							if(otherTrigger.attrVal[1].equals("<")) {
 								Double triVal=Double.parseDouble(trigger.attrVal[2]);
 								Double othTriVal=Double.parseDouble(otherTrigger.attrVal[2]);
-								if(triVal>=othTriVal) {
+								if(triVal>othTriVal) {
 									String triggerToTriggerDot=otherTrigger.triggerNum+"->"+trigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
 									parse.write(graphvizFile, triggerToTriggerDot, true);
+								}else if(trigger.attrVal[2].equals(otherTrigger.attrVal[2])) {
+									if(otherTrigger.trigger.indexOf("<=")>0) {
+										String triggerToTriggerDot=trigger.triggerNum+"->"+otherTrigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+										parse.write(graphvizFile, triggerToTriggerDot, true);
+									}
 								}
 							}
 						}

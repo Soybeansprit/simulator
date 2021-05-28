@@ -247,7 +247,7 @@ public class RandomWay {
 		List<AttrPiecewise> attrPiecewises=new ArrayList<AttrPiecewise>();
 		//根据trigger给attribute取值分段
 		for(String attribute:attributes) {
-			System.out.println(attribute);
+//			System.out.println(attribute);
 			AttrPiecewise attrPiecewise=new AttrPiecewise();
 			attrPiecewise.name=attribute;
 			List<Trigger> triggersWithSameAttribtue=getTriggersWithSameAttribute(attribute, triggers);
@@ -318,8 +318,8 @@ public class RandomWay {
 				attrValue[1]=String.format("%.1f", (attrPiecewises.get(i).piecewise.get(k)-attrPiecewises.get(i).piecewise.get(k-1))/2+attrPiecewises.get(i).piecewise.get(k-1));
 			}
 			
-			System.out.println(attrValue[0]);
-			System.out.println(attrValue[1]);
+//			System.out.println(attrValue[0]);
+//			System.out.println(attrValue[1]);
 			attrValues.add(attrValue);
 		}
 		
@@ -391,6 +391,7 @@ public class RandomWay {
 		String name=null;
 		boolean setFlag=false;
 		List<TimeValue> timeValues=new ArrayList<TimeValue>();
+		String parameter="";
 	}
 	
 	class TimeValue{
@@ -473,6 +474,7 @@ public class RandomWay {
 					BiddableTimeValue biddableTimeValue=new BiddableTimeValue();
 					biddableTimeValue.name=templGraph.name;
 					biddableTimeValue.timeValues=getTimeValues(templGraph);
+					biddableTimeValue.parameter=templGraph.parameter;
 					biddablesTimeValue.add(biddableTimeValue);
 				}
 			}
@@ -525,7 +527,11 @@ public class RandomWay {
 				
 			}
 			if(biddablesTimeValue.get(i).name.indexOf("Person")>=0) {
-				instance=instance+","+i;
+				String[] paras=biddablesTimeValue.get(i).parameter.split(",");
+				if(paras.length>biddablesTimeValue.get(i).timeValues.size()) {
+					instance=instance+","+i;   //实例化为第几号人
+				}
+				
 			}
 			
 			instance=instance+");";

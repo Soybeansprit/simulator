@@ -7,6 +7,7 @@ public class AllScenesAnalysisInput {
 
 	public List<Scene> scenes=new ArrayList<Scene>();
 	public List<Rule> rules=new ArrayList<Rule>();
+	public List<String> properties=new ArrayList<String>(); 
 	
 	public List<Scene> getScenes() {
 		return scenes;
@@ -19,5 +20,11 @@ public class AllScenesAnalysisInput {
 	}
 	public void setRules(List<Rule> rules) {
 		this.rules = rules;
+	}
+	public List<String> getProperties() {
+		return properties;
+	}
+	public void setProperties(List<String> properties) {
+		this.properties = properties;
 	}
 }

@@ -300,8 +300,10 @@ public class GenerateEnvModel {
 		
 		for(List<TemplGraph> bpTemplGraph:bpTemplGraphs) {
 			if(finalGraphs.size()==0) {
+				//////////////把一个bp的所有图的节点连接
 				for(TemplGraph currentGraph:bpTemplGraph) {
 					TemplGraph ctGraph=tempG.cloneTemplGraph(currentGraph);
+					///////////////连接节点
 					tempG.connectNode(ctGraph);
 					ctGraph.declaration=biddable.declaration;
 					ctGraph.init=biddable.init;
@@ -349,6 +351,7 @@ public class GenerateEnvModel {
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
 		TemplTransition chooseTran1=branchpoint.outTransitions.get(0);
 		TemplTransition chooseTran2=branchpoint.outTransitions.get(1);
+		///////////////如果出边节点为入边节点，则删除该边
 		if(!chooseTran1.node.id.equals(branchpoint.inTransitions.get(0).node.id)) {
 			TemplGraph graph1=getGraph(branchpoint.id, chooseTran1);
 			templGraphs.add(graph1);
@@ -397,6 +400,7 @@ public class GenerateEnvModel {
 					outTransitions.remove();
 				}
 			}
+			
 			Iterator<TemplTransition> inTransitions=stackNode.inTransitions.iterator();
 			while(inTransitions.hasNext()) {
 				TemplTransition inTransition=inTransitions.next();

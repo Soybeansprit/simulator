@@ -10,7 +10,8 @@ public class AllRuleAnalysisResult {
 	public List<DeviceAllSceneFastChangeRule> devicesAllSceneFastChangeRule=new ArrayList<DeviceAllSceneFastChangeRule>();
 	public List<DeviceSceneConflictCauseRule> devicesSceneConflictCauseRule=new ArrayList<DeviceSceneConflictCauseRule>();
 	public List<DeviceSceneFastChangeCauseRule> devicesSceneFastChangeCauseRule=new ArrayList<DeviceSceneFastChangeCauseRule>();
-
+	public List<PropertyAnalysis> propertyAnalysis=new ArrayList<PropertyAnalysis>();
+	
 	public List<DeviceAllSceneConflictRule> getDevicesAllSceneConflictRule() {
 		return devicesAllSceneConflictRule;
 	}
@@ -46,5 +47,11 @@ public class AllRuleAnalysisResult {
 	}
 	public void setRulesNeverTriggered(List<RuleAndCause> rulesNeverTriggered) {
 		this.rulesNeverTriggered = rulesNeverTriggered;
+	}
+	public List<PropertyAnalysis> getPropertyAnalysis() {
+		return propertyAnalysis;
+	}
+	public void setPropertyAnalysis(List<PropertyAnalysis> propertyAnalysis) {
+		this.propertyAnalysis = propertyAnalysis;
 	}
 }

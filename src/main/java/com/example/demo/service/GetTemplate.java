@@ -457,7 +457,7 @@ public class GetTemplate {
 			List<Element> locaElements=tempElement.elements("location");
 			
 			for(Element locaElement:locaElements) {
-				System.out.println(locaElement.getName());
+//				System.out.println(locaElement.getName());
 				Location location=new Location();
 				Attribute attr=locaElement.attribute("id");
 				location.id=attr.getValue();

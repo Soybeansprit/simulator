@@ -8,6 +8,7 @@ import java.util.List;
 import org.dom4j.DocumentException;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.Device;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
 import com.example.demo.bean.TemplTransition;
@@ -69,6 +70,43 @@ public class TemplGraphService {
 		}
 		
 		return templGraphs;
+	}
+	
+	public List<Device> getDevice(List<TemplGraph> controlledDevices){
+		List<Device> devices=new ArrayList<Device>();
+		for(TemplGraph controlledDevice:controlledDevices) {
+			if(controlledDevice.declaration!=null&&controlledDevice.declaration.indexOf("controlled_device")>=0) {
+				Device device=new Device();
+				device.name=controlledDevice.name;
+				for(TemplGraphNode stateNode:controlledDevice.templGraphNodes) {
+					if(stateNode.name!=null) {
+						String[] stateActionValue=new String[3];
+						stateActionValue[0]=stateNode.name;
+						for(TemplTransition inTransition:stateNode.inTransitions) {
+							if(inTransition.synchronisation!=null&&inTransition.assignment!=null) {
+								if(inTransition.synchronisation.indexOf("?")>0) {
+									String synchronisation=inTransition.synchronisation;
+									stateActionValue[1]=synchronisation.substring(0, synchronisation.indexOf("?"));
+								}
+								String[] assisnments=inTransition.assignment.split(",");
+								for(String assignment:assisnments) {
+									String identifier=device.name.substring(0, 1).toLowerCase()+device.name.substring(1);
+									if(assignment.indexOf(identifier)>=0) {
+										stateActionValue[2]=assignment.substring(assignment.indexOf("=")).substring("=".length());
+										break;
+									}
+								}
+								break;
+							}
+							
+						}
+						device.stateActionValues.add(stateActionValue);
+					}
+				}
+				devices.add(device);
+			}
+		}
+		return devices;
 	}
 
 	

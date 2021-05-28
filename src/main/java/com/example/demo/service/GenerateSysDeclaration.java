@@ -17,11 +17,13 @@ import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.bean.Action;
 import com.example.demo.bean.Parameter;
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
 import com.example.demo.bean.TemplTransition;
+import com.example.demo.bean.Trigger;
 import com.example.demo.service.AnalyseIFD.RuleStyle;
 import com.example.demo.service.AnalyseIFD.TriAndTriggerRule;
 import com.example.demo.service.GetTemplate.Label;
@@ -271,23 +273,55 @@ public class GenerateSysDeclaration {
 		return dataEles.length;
 	}
 	
-	public void modelDeclaration(String inputPath,String outputPath,List<TemplGraph> templGraphs,List<String> instances) throws DocumentException, IOException {
+	public void modelDeclaration(String inputPath,String outputPath,List<TemplGraph> templGraphs,List<String> instances,List<Action> actions,List<Trigger> triggers) throws DocumentException, IOException {
+		
+		
 		SAXReader reader= new SAXReader();
 		Document document = reader.read(new File(inputPath));
 		Element rootElement=document.getRootElement();
 		Element systemElement=rootElement.element("system");
 		//实例化：
 		
+		
+		
 		String system="system ";
 		for(TemplGraph templGraph:templGraphs) {
 			if(templGraph.parameter==null) {
 				if(templGraph.declaration!=null) {
 					if(templGraph.declaration.indexOf("sensor")>0) {
-						if(templGraph.declaration.indexOf("return distance")<0) {
+						if(templGraph.declaration.indexOf("return min")<0) {
+							continue;
+						}
+					}else if(templGraph.declaration.indexOf("controlled_device")>0) {
+						//////////////////对于rules中不涉及的device不进行model declaration
+//						System.out.println("templGraph name: "+templGraph.name);
+						boolean exist=false;
+						for(Action action:actions) {
+							System.out.println("action: "+action.action);
+							System.out.println("action.device: "+action.device);
+							if(action.device.equals(templGraph.name)) {
+								System.out.println("aciton.device: "+action.device);
+								exist=true;
+								break;
+							}
+						}
+						
+						if(!exist) {
+							for(Trigger trigger:triggers) {
+								if(trigger.attrVal[0].equals(templGraph.name)) {
+//									System.out.println("trigger.device:" +trigger.attrVal[0]);
+									exist=true;
+									break;
+								}
+							}
+						}
+						if(!exist) {
+//							System.out.println(templGraph.name +" not exist");
 							continue;
 						}
 					}
 				}
+//				System.out.println("add "+templGraph.name);
 				
 				system=system+templGraph.name+",";
 			}
@@ -430,9 +464,39 @@ public class GenerateSysDeclaration {
 						if(templGraphNode.name!=null) {
 							stateNum++;
 						}
+						if(templGraphNode.invariant!=null) {
+							String[] invariants=templGraphNode.invariant.split("&&"); 
+							for(String invariant:invariants) {
+								invariant=invariant.trim();
+								String name=null;
+								if(invariant.indexOf("'==")>0) {
+									name=invariant.substring(0, invariant.indexOf("'=="));
+								}else if(invariant.indexOf(">")>0) {
+									name=invariant.substring(0, invariant.indexOf(">"));
+								}else if(invariant.indexOf("<")>=0) {
+									name=invariant.substring(0, invariant.indexOf("<"));								
+								}
+								if(name.equals("t")) {
+									continue;
+								}else {
+									Parameter sameParameter=getSameParameter(parameters, name);
+									if(sameParameter==null) {
+										Parameter biddableParameter=new Parameter();
+										biddableParameter.setName(name);
+										biddableParameter.setStyle("clock");
+										parameters.add(biddableParameter);
+									}else {
+										if(!sameParameter.getStyle().equals("clock")) {
+											sameParameter.setStyle("clock");
+										}
+									}
+								}
+							}
+						}
 					}
 					parameter.setStyle("int[0,"+(stateNum-1)+"]");
 					parameter.setInitValue("0");
+					second:
 					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
 						if(templGraphNode.name!=null) {
 							for(TemplTransition inTransition:templGraphNode.inTransitions) {
@@ -441,8 +505,16 @@ public class GenerateSysDeclaration {
 									for(String assignment:assignments) {
 										assignment=assignment.trim();
 										String name=assignment.substring(0, assignment.indexOf("="));
-										if(!name.equals("t") && getSameParameter(parameters, name)==null) {
+										if(!name.equals("t")) {
 											parameter.setName(name);
+											for(Parameter param:parameters) {
+												if(param.getName().equals(name)) {
+													param.setInitValue(parameter.getInitValue());
+													param.setStyle(parameter.getStyle());
+													break second;
+												}
+											}
+											parameters.add(parameter);
 											break;
 										}
 									}
@@ -452,13 +524,26 @@ public class GenerateSysDeclaration {
 							break;
 						}
 					}
-					parameters.add(parameter);
+					
+					
 				}else {
 					for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
 						if(templGraphNode.invariant!=null) {
 							String[] invariants=templGraphNode.invariant.split("&&"); 
+							
+							
 							for(String invariant:invariants) {
 								invariant=invariant.trim();
+								System.out.println();
+								System.out.println();
+								System.out.println();
+								System.out.println();
+								System.out.println();
+								System.out.println(invariant);
+								System.out.println();
+								System.out.println();
+								System.out.println();
+								System.out.println();
 								String name=null;
 								if(invariant.indexOf("'==")>0) {
 									name=invariant.substring(0, invariant.indexOf("'=="));
@@ -514,7 +599,8 @@ public class GenerateSysDeclaration {
 					}
 				}
 				
-			}else if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0) {
+			}else if(templGraph.declaration!=null && templGraph.declaration.indexOf("sensor")>=0 ) {
+				/////////////不能只看causal的sensor///////////////TODO 2020/3/18          && templGraph.declaration.indexOf("causal")>=0
 				for(TemplGraphNode templGraphNode:templGraph.templGraphNodes) {
 					boolean hasInvariantVar=false;
 					if(templGraphNode.invariant!=null) {

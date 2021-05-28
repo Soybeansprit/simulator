@@ -145,6 +145,7 @@ public class RuleService {
 		for(String ruleTextLine:ruleTextLines) {
 			if(ruleTextLine!=null && ruleTextLine.toUpperCase().indexOf("IF ")>=0 &&
 					ruleTextLine.toUpperCase().indexOf(" THEN ")>0) {
+				ruleTextLine=ruleTextLine.substring(ruleTextLine.toUpperCase().indexOf("IF "));
 				ruleStrList.add(ruleTextLine);
 			}
 		}

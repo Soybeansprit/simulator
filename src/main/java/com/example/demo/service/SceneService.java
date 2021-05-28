@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +36,7 @@ import com.example.demo.bean.StateNameRelativeRule;
 import com.example.demo.bean.StatesChange;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TimeStateRelativeRules;
+import com.example.demo.bean.TriggeredAndNotTriggered;
 import com.example.demo.bean.WholeAndCurrentChangeCauseRule;
 import com.example.demo.service.GetTemplate.Template;
 
@@ -113,27 +116,52 @@ public class SceneService {
 		String finalModelNameSame=initFileModelName+"-final";
 		for(SceneChild sceneChild:scenesTree.getChildren()) {
 			String finalRandomSameModelName=finalModelNameSame+"-"+sceneChild.getName()+".xml";
-			cmd.gCsvFile(uppaalBinPath, filePath+"\\"+finalRandomSameModelName);
-			String csvFileSameName=finalRandomSameModelName+"-q0-e";
+			long startTime=System.currentTimeMillis();
+			String simulationResultStr=cmd.getSimulationResult(uppaalBinPath, filePath+"\\"+finalRandomSameModelName);
+			//生成数据文件
+			try (FileWriter fr=new FileWriter("D:\\workspace\\"+finalRandomSameModelName+".txt");
+					PrintWriter pw=new PrintWriter(fr)){
+				pw.write(simulationResultStr);
+			}catch(IOException e) {
+				e.printStackTrace();
+			}
+			long endTime=System.currentTimeMillis();
+			System.out.println("simulation time: " +(endTime-startTime));
+//			String csvFileSameName=finalRandomSameModelName+"-q0-e";
 			Scene scene=new Scene();
 			scene.setSceneName(sceneChild.getName());
 			List<DataTimeValue> dataTimeValues=new ArrayList<DataTimeValue>();
 			List<NameDataFunction> nameDataFunctions=new ArrayList<NameDataFunction>();
 //			List<String> csvFilePathList=new ArrayList<String>();
-			for(int i=0;i<dataNum;i++) {
-//				csvFilePathList.add(filePath+"\\"+csvFileSameName+i+".csv");
-				///////////////读取数据//////////////////
-				DataTimeValue dataTimeValue=dataAnalysisService.getDataTimeValue(filePath+"\\"+csvFileSameName+i+".csv");
-				dataTimeValues.add(dataTimeValue);
+			long startTime1=System.currentTimeMillis();
+			dataTimeValues=dataAnalysisService.getAllDataTimeValue(simulationResultStr);
+			long endTime1=System.currentTimeMillis();
+			System.out.println("getData time: "+(endTime1-startTime1));
+			
+			for(DataTimeValue dataTimeValue:dataTimeValues) {
 				NameDataFunction nameDataFunction=dataAnalysisService.getNameDataFunction(dataTimeValue);
 				nameDataFunctions.add(nameDataFunction);
 			}
-			List<DataTimeValue> triggeredRules=dataAnalysisService.getSceneTriggeredRules(dataTimeValues);
-			List<String> cannotTriggeredRules=dataAnalysisService.getSceneCannotTriggeredRules(dataTimeValues);
+			
+			
+			/*
+			 * for(int i=0;i<dataNum;i++) {
+			 * csvFilePathList.add(filePath+"\\"+csvFileSameName+i+".csv");
+			 * ///////////////读取数据////////////////// DataTimeValue
+			 * dataTimeValue=dataAnalysisService.getDataTimeValue(filePath+
+			 * "\\"+csvFileSameName+i+".csv"); // dataTimeValues.add(dataTimeValue); //
+			 * NameDataFunction
+			 * nameDataFunction=dataAnalysisService.getNameDataFunction(dataTimeValue); //
+			 * nameDataFunctions.add(nameDataFunction); }
+			 */
+//			List<DataTimeValue> triggeredRules=dataAnalysisService.getSceneTriggeredRules(dataTimeValues);
+//			List<String> cannotTriggeredRules=dataAnalysisService.getSceneCannotTriggeredRules(dataTimeValues);
+			TriggeredAndNotTriggered triggeredAndNotTriggered=dataAnalysisService.getSceneTriggeredAndNotTriggeredRules(dataTimeValues);
+			
 			scene.setDatasTimeValue(dataTimeValues);
 			scene.setNameDataFunctions(nameDataFunctions);
-			scene.setTriggeredRulesName(triggeredRules);
-			scene.setCannotTriggeredRulesName(cannotTriggeredRules);
+			scene.setTriggeredRulesName(triggeredAndNotTriggered.triggeredRules);
+			scene.setCannotTriggeredRulesName(triggeredAndNotTriggered.cannotTriggeredRules);
 			
 			scenes.add(scene);
 			
@@ -142,30 +170,38 @@ public class SceneService {
 		return scenes;		
 	}
 	
+	
 	public Scene getSimulationDataTimeValue(String sceneName,String filePath,String initFileName,String uppaalBinPath,int dataNum) throws IOException {
 		Scene scene=new Scene();
 		CMD cmd=new CMD();
 		DataAnalysisService dataAnalysisService=new DataAnalysisService();
 		String initFileModelName=initFileName.replace(".xml", "");
 		String finalModelName=initFileModelName+"-final-"+sceneName+".xml";
-		cmd.gCsvFile(uppaalBinPath, filePath+"\\"+finalModelName);
+		String simulationResultStr=cmd.getSimulationResult(uppaalBinPath, filePath+"\\"+finalModelName);
 		String csvFileSameName=finalModelName+"-q0-e";
 		List<DataTimeValue> dataTimeValues=new ArrayList<DataTimeValue>();
 		List<NameDataFunction> nameDataFunctions=new ArrayList<NameDataFunction>();
-		for(int i=0;i<dataNum;i++) {
-//			csvFilePathList.add(filePath+"\\"+csvFileSameName+i+".csv");
-			///////////////读取数据//////////////////
-			DataTimeValue dataTimeValue=dataAnalysisService.getDataTimeValue(filePath+"\\"+csvFileSameName+i+".csv");
-			dataTimeValues.add(dataTimeValue);
+		dataTimeValues=dataAnalysisService.getAllDataTimeValue(simulationResultStr);
+		for(DataTimeValue dataTimeValue:dataTimeValues) {
 			NameDataFunction nameDataFunction=dataAnalysisService.getNameDataFunction(dataTimeValue);
 			nameDataFunctions.add(nameDataFunction);
 		}
-		List<DataTimeValue> triggeredRules=dataAnalysisService.getSceneTriggeredRules(dataTimeValues);
-		List<String> cannotTriggeredRules=dataAnalysisService.getSceneCannotTriggeredRules(dataTimeValues);
+//		for(int i=0;i<dataNum;i++) {
+////			csvFilePathList.add(filePath+"\\"+csvFileSameName+i+".csv");
+//			///////////////读取数据//////////////////
+//			DataTimeValue dataTimeValue=dataAnalysisService.getDataTimeValue(filePath+"\\"+csvFileSameName+i+".csv");
+//			dataTimeValues.add(dataTimeValue);
+//			NameDataFunction nameDataFunction=dataAnalysisService.getNameDataFunction(dataTimeValue);
+//			nameDataFunctions.add(nameDataFunction);
+//		}
+		TriggeredAndNotTriggered triggeredAndNotTriggered=dataAnalysisService.getSceneTriggeredAndNotTriggeredRules(dataTimeValues);
+		
+//		List<DataTimeValue> triggeredRules=dataAnalysisService.getSceneTriggeredRules(dataTimeValues);
+//		List<String> cannotTriggeredRules=dataAnalysisService.getSceneCannotTriggeredRules(dataTimeValues);
 		scene.setDatasTimeValue(dataTimeValues);
 		scene.setNameDataFunctions(nameDataFunctions);
-		scene.setTriggeredRulesName(triggeredRules);
-		scene.setCannotTriggeredRulesName(cannotTriggeredRules);
+		scene.setTriggeredRulesName(triggeredAndNotTriggered.triggeredRules);
+		scene.setCannotTriggeredRulesName(triggeredAndNotTriggered.cannotTriggeredRules);
 		return scene;
 	}
 	
@@ -185,8 +221,8 @@ public class SceneService {
 			}
 			
 		}
-		List<NameDataFunction> nameDataFunctions=dataAnalysisService.getSceneNameDataFunctions(datasTimeValue);
-		scene.setNameDataFunctions(nameDataFunctions);
+//		List<NameDataFunction> nameDataFunctions=dataAnalysisService.getSceneNameDataFunctions(datasTimeValue);
+//		scene.setNameDataFunctions(nameDataFunctions);
 		List<DataTimeValue> triggeredRulesName=dataAnalysisService.getSceneTriggeredRules(rulesTimeValue);
 		scene.setTriggeredRulesName(triggeredRulesName);
 		List<String> cannotTriggeredRulesName=dataAnalysisService.getSceneCannotTriggeredRules(rulesTimeValue);

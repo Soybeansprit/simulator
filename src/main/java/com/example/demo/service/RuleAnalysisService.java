@@ -2,23 +2,32 @@ package com.example.demo.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Queue;
+import java.util.Stack;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 import org.dom4j.DocumentException;
 
+import com.example.demo.bean.Action;
 import com.example.demo.bean.AllRuleAnalysisResult;
 import com.example.demo.bean.ConflictTime;
 import com.example.demo.bean.CountStatesCauseRule;
 import com.example.demo.bean.CountStatesCauseRuleSceneName;
 import com.example.demo.bean.DataTimeValue;
+import com.example.demo.bean.Device;
 import com.example.demo.bean.DeviceAllSceneConflictRule;
 import com.example.demo.bean.DeviceAllSceneFastChangeRule;
 import com.example.demo.bean.DeviceAnalysResult;
 import com.example.demo.bean.DeviceSceneConflictCauseRule;
 import com.example.demo.bean.DeviceSceneFastChangeCauseRule;
+import com.example.demo.bean.ErrorReason;
 import com.example.demo.bean.GenerateModelParameters;
 import com.example.demo.bean.GraphNode;
+import com.example.demo.bean.GraphNodeArrow;
+import com.example.demo.bean.PropertyAnalysis;
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.RuleAndCause;
 import com.example.demo.bean.RuleCount;
@@ -32,6 +41,10 @@ import com.example.demo.bean.StateCauseRuleCount;
 import com.example.demo.bean.StateCauseRuleCountSceneName;
 import com.example.demo.bean.StateChangeCauseRules;
 import com.example.demo.bean.StateChangeFast;
+import com.example.demo.bean.StaticAnalysisResult;
+import com.example.demo.bean.TemplGraph;
+import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.TemplTransition;
 import com.example.demo.bean.TimeStateRelativeRules;
 
 public class RuleAnalysisService {
@@ -46,7 +59,8 @@ public class RuleAnalysisService {
 				"\r\n" + 
 				"2. IF SmartHomeSecurity.homeMode AND temperature>=30 THEN M.accoolPulse\r\n" + 
 				"\r\n" + 
-				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN M.honPulse\r\n" + 
+				"IF Humidifier.hon THEN M.dopenPulse\r\n"+
+//				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN M.honPulse\r\n" + 
 				"\r\n" + 
 				"4. IF SmartHomeSecurity.homeMode AND humidity>=45 THEN M.hoffPulse\r\n" + 
 				"\r\n" + 
@@ -90,6 +104,10 @@ public class RuleAnalysisService {
 				"\r\n" + 
 				"24. IF number>0 THEN M.homeModePulse\r\n" + 
 				"\r\n" + 
+				"24. IF number>0 THEN M.homeModePulse\r\n" + 
+				"\r\n" + 
+				"20. IF temperature>30 AND SmartHomeSecurity.homeMode THEN M.accoolPulse\r\n" + 
+				"\r\n" + 
 				"25. IF number=0 THEN M.awayModePulse\r\n" + 
 				"\r\n" + 
 				"26. IF SmartHomeSecurity.homeMode AND temperature>28 THEN M.bopenPulse\r\n" + 
@@ -100,26 +118,889 @@ public class RuleAnalysisService {
 				"\r\n" + 
 				"29. IF AirConditioner.cool THEN M.wclosePulse\r\n" + 
 				"\r\n" + 
-				"30. IF AirConditioner.heat THEN M.wclosePulse";
+				"30. IF AirConditioner.heat THEN M.wclosePulse\r\n"+
+				"\r\n" +
+				"31. IF temperature>30 THEN M.dddddPulse\r\n" + 
+				"\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN M.acheatPulse\r\n"+ 
+				"\r\n" + 
+				"19. IF temperature>20 AND temperature<18 THEN M.acheatPulse\r\n" + 
+				"\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND SamrtHomeSecurity.awayMode THEN M.acheatPulse\r\n"+ 
+				"\r\n" + 
+				"19. IF number=0 AND number>0 THEN M.acheatPulse\r\n"+ 
+				"\r\n" + 
+				"19. IF temperature<18 AND temperature>21 THEN M.acheatPulse\r\n"+
+				"\r\n"+
+				"IF temperature>18 THEN M.wopenPulse,M.acheatPulse\r\n"+
+				"\r\n"+
+				"IF temperature>18 THEN M.wopenPulse\r\n"+
+				"\r\n"+
+				"IF temperature>18 THEN M.fonPulse\r\n"+
+				"\r\n"+
+				"IF Fan.fon THEN M.acheatPulse\r\n";
 		String initModelName="exp0108.xml";
 		String simulationTime="300";
 		List<Rule> rules=ruleService.getRuleList(ruleText);
 		System.out.println(rules);
-		
+		StaticAnalysisResult staticAnalysisResult=getRequirementError(rules, "exp0108-person-dif-change.xml");
+		List<Rule> newRules=deleteRepeat(rules);
 		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules,"D:\\workspace", initModelName, simulationTime);
 		List<Scene> scenes=new ArrayList<Scene>();
 		int simulationDataNum=generateModelParameters.simulationDataNum;
 		ScenesTree scenesTree=generateModelParameters.scenesTree;
 		scenes=sceneService.getAllSimulationDataTimeValue(scenesTree, "D:\\workspace", initModelName, "D:\\tools\\uppaal-4.1.24\\uppaal-4.1.24\\bin-Windows", simulationDataNum);
-		ruleAnalysisService.getAllRuleAnalysis(scenes, rules, "D:\\workspace", initModelName, simulationTime, "24", "300");
+//		ruleAnalysisService.getAllRuleAnalysis(scenes, rules, "D:\\workspace", initModelName, simulationTime, "24", "300");
 
 	}
 	
 	
-	public AllRuleAnalysisResult getAllRuleAnalysis(List<Scene> scenes,List<Rule> rules,String filePath,String initFileName,String simulationTime,String equivalentTime,String intervalTime) throws DocumentException {
+	public static StaticAnalysisResult getRequirementError(List<Rule> rules, String initFileName) throws DocumentException, IOException {
+		GetTemplate getTemplate=new GetTemplate();
+		////返回可用的rules和各种错误
+		HashMap<String,Rule> mapRules=new HashMap<String,Rule>();
+		for(Rule rule:rules) {
+			mapRules.put(rule.getRuleName(), rule);
+		}
+		TemplGraphService templGraphService=new TemplGraphService();
+		TGraphToDot tDot=new TGraphToDot();
+		ToNode toNode=new ToNode();
+		//转成可解析xml文件
+		String initFileModelName=initFileName.replace(".xml", "");
+		String middleChangedModelFileName=initFileModelName+"-change";
+		getTemplate.deletLine("D:\\workspace"+"\\"+initFileName, "D:\\workspace"+"\\"+middleChangedModelFileName+".xml", 2);
+		
+		List<TemplGraph> templGraphs=templGraphService.getTemplGraphs("D:\\workspace"+"\\"+middleChangedModelFileName+".xml");
+		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
+		for(TemplGraph templGraph:templGraphs) {
+			if(templGraph.declaration.indexOf("controlled_device")>=0) {
+				controlledDevices.add(templGraph);
+			}
+		}
+		List<Device> devices=templGraphService.getDevice(controlledDevices);
+		/////移除incorrect rules
+//		List<Rule> incorrectRules=getIncorrect(rules, templGraphs);
+		List<ErrorReason> incorrectRules=getIncorrect(rules, devices);
+		
+		
+		Iterator<Rule> iteratorRules=rules.iterator();
+		while(iteratorRules.hasNext()) {
+			Rule rule=iteratorRules.next();			
+			for(ErrorReason er:incorrectRules) {
+				if(rule.getRuleName().equals(er.rule.getRuleName())) {
+					iteratorRules.remove();
+				}
+			}
+		}
+		///////////////////删除重复的规则
+		List<Rule> newRules=deleteRepeat(rules);
+		
+		tDot.getIFD(templGraphs, newRules, "D:\\workspace"+"\\"+initFileName+".dot");
+		List<GraphNode> nodes=toNode.getNodes("D:\\workspace"+"\\"+initFileName+".dot");
+		List<GraphNode> ruleNodes=new ArrayList<GraphNode>();
+		
+		for(GraphNode node:nodes) {
+			if(node.getShape().equals("hexagon")) {
+				ruleNodes.add(node);
+			}
+		}
+		///////////获得unused
+		List<ErrorReason> unusedRules=getUnused(ruleNodes, devices,mapRules);
+		System.out.println(unusedRules);
+		Iterator<Rule> iteratorNewRules=newRules.iterator();
+		//////////删掉unused
+		while(iteratorNewRules.hasNext()) {
+			Rule rule=iteratorNewRules.next();
+			for(ErrorReason unusedRule:unusedRules) {
+				if(unusedRule.rule.getRuleName().equals(rule.getRuleName())) {
+					iteratorNewRules.remove();
+					break;
+				}
+			}
+		}
+		tDot.getIFD(templGraphs, newRules, "D:\\workspace"+"\\"+initFileName+".dot");
+		ruleNodes.clear();
+		nodes.clear();
+		nodes=toNode.getNodes("D:\\workspace"+"\\"+initFileName+".dot");
+		for(GraphNode node:nodes) {
+			if(node.getShape().equals("hexagon")) {
+				ruleNodes.add(node);
+			}
+		}
+
+		//////获得redundant rules
+		List<List<GraphNode>> redundantRuleNodes=new ArrayList<List<GraphNode>>();
+		for(GraphNode ruleNode:ruleNodes) {
+			redundantRuleNodes.add(getRedundant(ruleNode,nodes));
+		}
+		
+		List<List<Rule>> redundantRules=new ArrayList<List<Rule>>();
+		for(List<GraphNode> redundant:redundantRuleNodes) {
+			List<Rule> reRules=new ArrayList<Rule>();
+			for(GraphNode node:redundant) {
+				Rule rule=mapRules.get(node.getName());
+				reRules.add(rule);
+			}
+			if(reRules.size()>1) {
+				redundantRules.add(reRules);
+			}
+		}
+		System.out.println(redundantRuleNodes);
+		List<Action> actions=tDot.getActions(newRules,templGraphs);
+		List<Device> cannotOffDevices=getIncompleteness(devices, actions);
+		List<String> incompleteness=new ArrayList<String>();
+		for(Device device:cannotOffDevices) {
+			for(String[] stateActionValue:device.stateActionValues) {
+				if(Integer.parseInt(stateActionValue[2])==0) {
+					String incomplete="Missing rule to turn off "+device.name;
+					incompleteness.add(incomplete);
+					break;
+				}
+			}
+		}
+		
+		StaticAnalysisResult staticAnalysisResult=new StaticAnalysisResult();
+		staticAnalysisResult.incorrectRules=incorrectRules;
+		staticAnalysisResult.unusedRules=unusedRules;
+		staticAnalysisResult.redundantRules=redundantRules;
+		staticAnalysisResult.incompleteness=incompleteness;
+		staticAnalysisResult.usableRules=newRules;
+		return staticAnalysisResult;
+		
+	}
+	//////////////////获得incompleteness
+	public static List<Device> getIncompleteness(List<Device> devices,List<Action> actions) {
+		List<Device> cannotOffDevices=new ArrayList<Device>();
+		for(Device device:devices) {
+			boolean canOn=false;
+			String offAction="";
+			for(String[] stateActionValue:device.stateActionValues) {
+				if(Integer.parseInt(stateActionValue[2])>0) {
+					String action=stateActionValue[1];
+					for(Action act:actions) {
+						if(act.action.equals(action)) {
+							canOn=true;
+							break;
+						}
+					}
+				}else {
+					offAction=stateActionValue[1];
+				}
+			}
+			if(canOn) {
+				boolean canOff=false;
+				for(Action act:actions) {
+					if(act.action.equals(offAction)) {
+						canOff=true;
+						break;
+					}
+				}
+				if(!canOff) {
+					cannotOffDevices.add(device);
+				}
+			}
+		}
+		return cannotOffDevices;
+	}
+	
+	///////////////////获得unused
+	public static List<ErrorReason> getUnused(List<GraphNode> ruleNodes,List<Device> devices,HashMap<String,Rule> mapRules){
+//		List<GraphNode> unusedRules=new ArrayList<GraphNode>();
+		List<ErrorReason> unusedRules=new ArrayList<ErrorReason>();
+		for(GraphNode ruleNode:ruleNodes) {
+			if(!isUnused(ruleNode, devices).equals("")) {
+//				unusedRules.add(ruleNode);
+				String reason=isUnused(ruleNode,devices);
+				Rule unusedRule=mapRules.get(ruleNode.getName());
+				ErrorReason er=new ErrorReason();
+				er.reason=reason;
+				er.rule=unusedRule;
+				unusedRules.add(er);
+			}
+		}
+		return unusedRules;
+	}
+	public static String isUnused(GraphNode ruleNode,List<Device> devices) {
+		TGraphToDot tDot=new TGraphToDot();
+		boolean isUnused=false;
+		boolean correct=true;
+		String reason="";
+		List<GraphNode> triggerNodes=new ArrayList<GraphNode>();
+		for(GraphNodeArrow pArrow:ruleNode.getpNodeList()) {
+			GraphNode triggerNode=pArrow.getGraphNode();
+			boolean legal=false;
+			for(GraphNodeArrow ppArrow:triggerNode.getpNodeList()) {
+				if(ppArrow.getColor()!=null&&ppArrow.getColor().indexOf("lightpink")>=0) {
+					legal=true;
+					break;
+				}
+			}
+			if(!legal) {
+				//////////trigger不合法
+				correct=false;
+				reason="Trigger: "+triggerNode.getLabel()+" illegal.";
+				System.out.println(reason);
+				isUnused=true;
+				return reason;
+			}
+			triggerNodes.add(triggerNode);
+		}
+		///////////trigger之间矛盾
+		for(int i=0;i<triggerNodes.size();i++) {
+			GraphNode triggerNode1=triggerNodes.get(i);
+			for(int j=i+1;j<triggerNodes.size();j++) {
+				GraphNode triggerNode2=triggerNodes.get(j);
+				if(isContra(triggerNode1, triggerNode2)) {
+					isUnused=true;
+					reason="Trigger: "+triggerNode1.getLabel()+" "+triggerNode2.getLabel()+" has a logical contradiction.";
+					System.out.println(reason);
+					return reason;
+				}
+			}
+		}
+		////////////trigger是state，但是没有条件触发
+		for(GraphNode triggerNode:triggerNodes) {
+			String[] attrVal=tDot.getAttrVal(triggerNode.getLabel());
+			if(attrVal[1].equals(".")) {
+				boolean hasDevice=false;
+				for(Device device:devices) {
+					if(device.name.equals(attrVal[0])) {
+						hasDevice=true;
+						for(String[] stateActionValue:device.stateActionValues) {
+							if(stateActionValue[0].equals(attrVal[2])) {
+								if(!stateActionValue[2].equals("0")) {
+									boolean hasPreAction=false;
+									for(GraphNodeArrow pArrow:triggerNode.getpNodeList()) {
+										if(pArrow.getGraphNode().getName().equals(stateActionValue[1])) {
+											hasPreAction=true;
+											//////////看这个action的rule有没有能触发的
+											GraphNode actionNode=pArrow.getGraphNode();
+											boolean cantriggered=false;
+											for(GraphNodeArrow ppArrow:actionNode.getpNodeList()) {
+												if(ppArrow.getGraphNode().getShape().equals("hexagon")) {
+													GraphNode pruleNode=ppArrow.getGraphNode();
+													if(isUnused(pruleNode, devices).equals("")) {
+														cantriggered=true;
+														break;
+													}
+												}
+											}
+											if(!cantriggered) {
+												isUnused=true;
+												reason="No rule can satisfy "+triggerNode.getLabel()+".";
+												System.out.println(reason);
+												return reason;
+											}
+											break;
+										}
+									}
+									if(!hasPreAction) {
+										isUnused=true;
+										reason="No rule can satisfy "+triggerNode.getLabel()+".";
+										System.out.println(reason);
+										return reason;
+									}
+								}
+								break;
+							}
+						}
+						
+						break;
+					}
+				}
+//				if(!hasDevice) {
+//					isUnused=false;
+//					return isUnused;
+//				}
+				
+
+				
+				
+			}
+		}
+		
+		
+		
+		
+		return reason;
+	}
+	
+	public static boolean isContra(GraphNode triggerNode1,GraphNode triggerNode2) {
+		TGraphToDot tDot=new TGraphToDot();
+		String trigger1=triggerNode1.getLabel();
+		String trigger2=triggerNode2.getLabel();
+		String[] attrVal1=tDot.getAttrVal(trigger1);
+		String[] attrVal2=tDot.getAttrVal(trigger2); 
+		if(attrVal1[0].equals(attrVal2[0])) {
+			if(attrVal1[1].equals(".")) {
+				if(attrVal2[2].equals(attrVal1[2])) {
+					return true;
+				}
+			}else {
+				double val1=Double.parseDouble(attrVal1[2]);
+				double val2=Double.parseDouble(attrVal2[2]);
+				if(attrVal1[1].equals("=")) {
+					if(attrVal2[1].equals("=")) {
+						if(!attrVal2[2].equals(attrVal1[2])) {
+							return true;
+						}
+					}else if(attrVal2[1].equals(">")) {
+						if(val2>=val1) {
+							return true;
+						}
+					}else if(attrVal2[1].equals("<")) {
+						if(val2<=val1) {
+							return true;
+						}
+					}
+				}else if(attrVal2[1].equals("=")) {
+					if(attrVal1[1].equals(">")) {
+						if(val1>=val2) {
+							return true;
+						}
+					}else if(attrVal1[1].equals("<")) {
+						if(val1<=val2) {
+							return true;
+						}
+					}
+				}else if(attrVal1[1].equals(">")) {
+					if(attrVal2[1].equals("<")) {
+						if(val1>=val2) {
+							return true;
+						}
+					}
+				}else if(attrVal1[1].equals("<")) {
+					if(attrVal2[1].equals(">")) {
+						if(val1<=val2) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		
+		return false;
+	}
+	
+	////////////////////获得冗余的规则
+	public static List<GraphNode> getRedundant(GraphNode ruleNode,List<GraphNode> graphNodes) {
+		List<GraphNode> redundantNodes=new ArrayList<GraphNode>();
+		List<GraphNode> otherCauseRuleNodes=new ArrayList<GraphNode>();
+		redundantNodes.add(ruleNode);
+		boolean allActionHasOtherRule=true;
+		first:
+		for(GraphNodeArrow cArrow:ruleNode.getcNodeList()) {
+			GraphNode actionNode=cArrow.getGraphNode();
+			boolean existOtherRule=false;
+			for(GraphNodeArrow pArrow:actionNode.getpNodeList()) {
+				/////////还有其他规则能发起该action		
+				if(!pArrow.getGraphNode().getShape().equals("hexagon")) {
+					continue;
+				}
+				if(!pArrow.getGraphNode().getName().equals(ruleNode.getName())) {
+					existOtherRule=true;
+					GraphNode otherRuleNode=pArrow.getGraphNode();
+					otherCauseRuleNodes.add(otherRuleNode);
+					if(containActionNode(ruleNode, otherRuleNode)) {
+						/////////////otherRule包含rule的所有action
+						List<GraphNode> pathRuleLists=canTraceBack(ruleNode, otherRuleNode,graphNodes);
+						if(pathRuleLists!=null) {
+							/////otherRuleNode的trigger总能指向ruleNode的trigger
+							/////说明是冗余的
+							redundantNodes.addAll(pathRuleLists);
+//							for(GraphNode pointedTriggerNode:pointedTriggerNodes) {
+//								boolean directPoint=false;
+//								for(GraphNodeArrow triggercArrow:pointedTriggerNode.getcNodeList()) {
+//									if(triggercArrow.getGraphNode().getName().equals(otherRuleNode.getName())) {
+//										directPoint=true;
+//										break;
+//									}
+//								}
+//								if(!directPoint) {
+//									for(GraphNodeArrow triggerpArrow:pointedTriggerNode.getpNodeList()) {
+//										if(triggerpArrow.getGraphNode().getShape().indexOf("oval")>=0) {
+//											directPoint=true;
+//											break;
+//										}
+//										if(triggerpArrow.getGraphNode().getShape().indexOf("record")>=0 && triggerpArrow.getStyle()==null) {
+//											GraphNode pActionNode=triggerpArrow.getGraphNode();
+//											List<GraphNode> sourceRuleNodes=getSourceRules(pActionNode);
+//											for(GraphNode sourceRuleNode:sourceRuleNodes) {
+//												boolean existSourceNode=false;
+//												for(GraphNode redundantNode:redundantNodes) {
+//													if(redundantNode.getName().equals(sourceRuleNode.getName())) {
+//														existSourceNode=true;
+//														break;
+//													}
+//												}
+//												if(!existSourceNode) {
+//													redundantNodes.add(sourceRuleNode);
+//												}
+//											}
+//										}
+//										
+//									}
+//								}
+//								
+//								
+//							}
+							
+							break first;
+						}
+					}
+				}				
+			}
+			if(!existOtherRule) {
+				//////////////如果没有其他规则能发起该rule那这条规则不会冗余
+				allActionHasOtherRule=false;
+				break;
+			}
+		}
+		if(allActionHasOtherRule&&redundantNodes.size()==1) {
+			for(GraphNode otherRuleNode:otherCauseRuleNodes) {
+				List<GraphNode> pathRuleList=canTraceBack(ruleNode, otherRuleNode,graphNodes);
+				if(pathRuleList!=null) {
+					/////otherRuleNode的trigger总能指向ruleNode的trigger
+					/////说明是冗余的
+					redundantNodes.addAll(pathRuleList);
+//					for(GraphNode pointedTriggerNode:pointedTriggerNodes) {
+//						boolean directPoint=false;
+//						for(GraphNodeArrow triggercArrow:pointedTriggerNode.getcNodeList()) {
+//							if(triggercArrow.getGraphNode().getName().equals(otherRuleNode.getName())) {
+//								directPoint=true;
+//								break;
+//							}
+//						}
+//						if(!directPoint) {
+//							for(GraphNodeArrow triggerpArrow:pointedTriggerNode.getpNodeList()) {
+//								if(triggerpArrow.getGraphNode().getShape().indexOf("oval")>=0) {
+//									directPoint=true;
+//									break;
+//								}
+//								if(triggerpArrow.getGraphNode().getShape().indexOf("record")>=0) {
+//									GraphNode pActionNode=triggerpArrow.getGraphNode();
+//									List<GraphNode> sourceRuleNodes=getSourceRules(pActionNode);
+//									for(GraphNode sourceRuleNode:sourceRuleNodes) {
+//										boolean existSourceNode=false;
+//										for(GraphNode redundantNode:redundantNodes) {
+//											if(redundantNode.getName().equals(sourceRuleNode.getName())) {
+//												existSourceNode=true;
+//												break;
+//											}
+//										}
+//										if(!existSourceNode) {
+//											redundantNodes.add(sourceRuleNode);
+//										}
+//									}
+//								}
+//								
+//							}
+//						}
+//						
+//						
+//					}
+				}
+			}
+		}
+		if(redundantNodes.size()>1) {
+			for(GraphNodeArrow cArrow:ruleNode.getcNodeList()) {
+				boolean existActionNode=false;
+				second:
+				for(int i=1;i<redundantNodes.size();i++) {
+					for(GraphNodeArrow recArrow:redundantNodes.get(i).getcNodeList()) {
+						if(cArrow.getGraphNode().getName().equals(recArrow.getGraphNode().getName())) {
+							existActionNode=true;
+							break second;
+						}
+					}
+				}
+				if(!existActionNode) {
+					redundantNodes.clear();
+					redundantNodes.add(ruleNode);
+					break;
+				}
+			}
+			
+		}
+		return redundantNodes;
+	}
+	
+	public static List<GraphNode> getSourceRules(GraphNode actionNode){
+		List<GraphNode> sourceRuleNodes=new ArrayList<GraphNode>();
+		for(GraphNodeArrow pArrow:actionNode.getpNodeList()) {
+			if(pArrow.getGraphNode().getShape().indexOf("hexagon")>=0) {
+				sourceRuleNodes.add(pArrow.getGraphNode());
+			}
+		}
+		return sourceRuleNodes;
+	}
+	
+	public static List<GraphNode> getRedundantRuleList(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes) {
+		List<GraphNode> triggerNodes=new ArrayList<GraphNode>();
+		for(GraphNodeArrow pArrow:ruleNode.getpNodeList()) {
+			triggerNodes.add(pArrow.getGraphNode());
+		}
+		for(GraphNode triggerNode:triggerNodes) {
+			return canPointToRule(triggerNode, otherRuleNode, graphNodes);
+		}
+		return null;
+		
+	}
+	
+	public static List<GraphNode> canTraceBack(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes){
+		List<GraphNode> ruleList=new ArrayList<GraphNode>();
+		List<GraphNode> triggerNodes=new ArrayList<GraphNode>();
+		for(GraphNodeArrow pArrow:ruleNode.getpNodeList()) {
+			triggerNodes.add(pArrow.getGraphNode());
+		}
+		for(GraphNode node:graphNodes) {
+			if(node.flag) {
+				node.flag=false;
+			}
+		}
+		for(GraphNodeArrow pArrow:otherRuleNode.getpNodeList()) {
+			GraphNode triggerNode=pArrow.getGraphNode();
+			Queue<GraphNode> nodeQueue=new LinkedList<GraphNode>();
+			nodeQueue.add(triggerNode);
+			triggerNode.flag=true;
+			boolean canTraceTo=false;
+			while(!nodeQueue.isEmpty()) {
+				GraphNode node=nodeQueue.poll();
+				if(triggerNodes.contains(node)) {
+					canTraceTo=true;
+					break;
+				}
+				for(GraphNodeArrow nodepArrow:node.getpNodeList()) {
+					GraphNode pNode=nodepArrow.getGraphNode();
+					if(nodepArrow.getStyle()==null&&pNode.getShape().indexOf("doubleoctagon")<0&&!pNode.flag) {
+						if(pNode.getShape().indexOf("hexagon")>=0 && !pNode.getName().equals(ruleNode.getName())) {
+							List<GraphNode> pRuleList=new ArrayList<GraphNode>();
+							
+							if((pRuleList=canTraceBack(ruleNode, pNode, graphNodes))!=null) {
+								ruleList.addAll(pRuleList);
+							}
+						}else {
+							nodeQueue.add(pNode);
+							pNode.flag=true;
+						}
+					}
+				}
+				
+			}
+			if(!canTraceTo&&ruleList.size()==0) {
+				return null;
+			}
+			
+		}
+		
+		
+		ruleList.add(otherRuleNode);
+		
+		return ruleList;
+	}
+	
+	public static List<GraphNode> canPointToRule(GraphNode graphNode,GraphNode ruleNode,List<GraphNode> graphNodes) {
+		Queue<GraphNode> nodeQueue=new LinkedList<GraphNode>();
+		nodeQueue.add(graphNode);
+		graphNode.flag=true;
+		List<GraphNode> ruleList=new ArrayList<GraphNode>();
+		boolean canPointTo=false;
+		first:
+		while(!nodeQueue.isEmpty()) {
+			GraphNode node=nodeQueue.poll();			
+			for(GraphNodeArrow cArrow:node.getcNodeList()) {
+				if(cArrow.getStyle()!=null) {
+					continue;
+				}
+				GraphNode cNode=cArrow.getGraphNode();
+				if(cNode.getName().equals(ruleNode.getName())) {
+					canPointTo=true;
+					ruleList.add(cNode);
+					break first;
+				}else if(!cNode.flag){
+					if(cNode.getShape().equals("hexagon")) {
+						if(canPointToRule(cNode,ruleNode,graphNodes)!=null) {
+							ruleList.add(cNode);							
+						}else {
+							continue;
+						}
+					}
+					nodeQueue.add(cNode);
+					cNode.flag=true;
+				}
+			}
+		}
+		if(!canPointTo) {
+			ruleList=null;
+		}
+		for(GraphNode node:graphNodes) {
+			if(node.flag) {
+				node.flag=false;
+			}
+		}
+		return ruleList;
+	}
+	
+	
+	public static List<GraphNode> getPointedTriggers(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes){
+		List<GraphNode> pointedTriggerNodes=new ArrayList<GraphNode>();
+		for(GraphNodeArrow pArrow:otherRuleNode.getpNodeList()) {
+			boolean canPointTo=false;
+			GraphNode triggerNode=pArrow.getGraphNode();
+			Queue<GraphNode> nodeQueue=new LinkedList<GraphNode>();
+			nodeQueue.add(triggerNode);
+			triggerNode.flag=true;
+			while(!nodeQueue.isEmpty()) {
+				GraphNode node=nodeQueue.poll();				
+				for(GraphNodeArrow cArrow:node.getcNodeList()) {
+					/////////node直接指向ruleNode
+					if(cArrow.getGraphNode().getName().equals(ruleNode.getName())) {
+						boolean existNode=false;
+						for(GraphNode tNode:pointedTriggerNodes) {
+							if(node.getName().equals(tNode.getName())) {
+								existNode=true;
+								break;
+							}
+						}
+						if(!existNode) {
+							pointedTriggerNodes.add(node);
+						}
+						
+						canPointTo=true;
+						break;
+					}
+					if(!cArrow.getGraphNode().getName().equals(otherRuleNode.getName())&&!cArrow.getGraphNode().flag &&
+							cArrow.getGraphNode().getShape().indexOf("doubleoctagon")<0&&cArrow.getStyle()==null) {
+						GraphNode newNode=cArrow.getGraphNode();
+						nodeQueue.add(newNode);
+						newNode.flag=true;
+					}
+				}
+				//////////能指向ruleNode的trigger
+				if(canPointTo) {
+					break;
+				}				
+			}
+			//////TODO flag有问题
+			///////////////把flag复原
+			
+//			Queue<GraphNode> newNodeQueue=new LinkedList<GraphNode>();
+//			newNodeQueue.add(triggerNode);
+//			triggerNode.flag=false;
+//			while(!newNodeQueue.isEmpty()) {
+//				GraphNode node=newNodeQueue.poll();				
+//				for(GraphNodeArrow cArrow:node.getcNodeList()) {
+//					/////////node直接指向ruleNode
+//					if(cArrow.getGraphNode().flag) {
+//						GraphNode newNode=cArrow.getGraphNode();
+//						newNodeQueue.add(newNode);
+//						newNode.flag=false;
+//					}
+//				}
+//				//////////能指向ruleNode的trigger
+//				if(canPointTo) {
+//					break;
+//				}				
+//			}			
+			
+			for(GraphNode node:graphNodes) {
+				if(node.flag) {
+					node.flag=false;
+				}
+			}
+			///////////////////////////
+			
+			if(!canPointTo) {
+				return null;
+			}
+		}
+		
+		return pointedTriggerNodes;
+	}
+	
+	///////////otherRule的action是否包含rule的action
+	public static boolean containActionNode(GraphNode ruleNode,GraphNode otherRuleNode) {
+		boolean contain=true;
+		for(GraphNodeArrow cArrow:ruleNode.getcNodeList()) {
+			GraphNode actionNode=cArrow.getGraphNode();
+			boolean exist=false;
+			for(GraphNodeArrow othercArrow:otherRuleNode.getcNodeList()) {
+				if(othercArrow.getGraphNode().getName().equals(actionNode.getName())) {
+					exist=true;
+					break;
+				}
+			}
+			if(!exist) {
+				contain=false;
+			}
+		}
+		return contain;
+	}
+	
+
+	
+	
+	
+	///////////////////删除重复的规则
+	
+	public static List<Rule> deleteRepeat(List<Rule> rules){
+		List<Rule> newRules=new ArrayList<Rule>();
+//		for(int i=rules.size()-1;i>=0;i--) {
+//			for(int j=0;j<i;j++) {
+//				if(rules.get(i).contentEquals(rules.get(j))) {
+//					rules.remove(i);
+//					break;
+//				}
+//			}
+//		}
+		for(Rule rule:rules) {
+			boolean equal=false;
+			for(Rule newRule:newRules) {
+				if(newRule.contentEquals(rule)) {
+					equal=true;
+					break;
+				}
+			}
+			if(!equal) {
+				newRules.add(rule);
+			}
+		}
+		return newRules;
+	}
+//	public static List<Rule> deleteRepeat(List<Rule> rules){
+//		List<Rule> newRules=new ArrayList<Rule>();
+//		for(Rule rule:rules) {
+//			boolean exist=false;
+//			second:
+//			for(Rule newRule:newRules) {
+//				if(rule.getRuleContent().equals(newRule.getRuleContent())) {
+//					exist=true;
+//					break;
+//				}
+//				boolean actionSame=true;
+//				boolean triggerSame=true;
+//				if(newRule.getTrigger().size()==rule.getTrigger().size()) {
+//					for(String tri:rule.getTrigger()) {
+//						boolean triExist=false;
+//						for(String newTri:newRule.getTrigger()) {
+//							if(tri.equals(newTri)) {
+//								triExist=true;
+//								break;
+//							}
+//						}
+//						if(!triExist) {
+//							triggerSame=false;
+//							continue second;
+//						}
+//					}
+//				}else {
+//					triggerSame=false;
+//					continue;
+//				}
+//				if(newRule.getAction().size()==rule.getAction().size()) {
+//					for(String act:rule.getAction()) {
+//						boolean actExist=false;
+//						for(String newAct:newRule.getAction()) {
+//							if(act.equals(newAct)) {
+//								actExist=true;
+//								break;
+//							}
+//						}
+//						if(!actExist) {
+//							actionSame=false;
+//							continue second;
+//						}
+//					}
+//				}else {
+//					actionSame=false;
+//					continue;
+//				}
+//				
+//				if(actionSame&&triggerSame) {
+//					exist=true;
+//					break;
+//				}
+//				
+//			}
+//			if(!exist) {
+//				newRules.add(rule);
+//			}
+//		}
+//		return newRules;
+//	}
+	
+	
+	////////////////////获得不正确的规则
+	public static List<ErrorReason> getIncorrect(List<Rule> rules,List<Device> devices){
+		List<ErrorReason> incorrectReason=new ArrayList<ErrorReason>();
+		List<Rule> incorrectRules=new ArrayList<Rule>();
+		for(Rule rule:rules) {
+			String reason="";
+			boolean incorrect=false;
+			for(String action:rule.getAction()) {
+				boolean existAction=false;
+				device:
+				for(Device device:devices) {
+					for(String[] stateActionValue:device.stateActionValues) {
+						if(stateActionValue[1].trim().equals(action.trim())) {
+							existAction=true;
+							break device;
+						}
+					}
+				}
+				if(!existAction) {
+					incorrect=true;	
+					reason+=action.trim()+" ";
+				}
+			}
+			if(incorrect) {
+				ErrorReason er=new ErrorReason();
+				er.rule=rule;
+				er.reason=reason+"cannot be executed!";
+				incorrectReason.add(er);
+				
+				incorrectRules.add(rule);
+				System.out.println(reason);
+			}
+			
+		}
+		return incorrectReason;
+	}
+	
+	
+//	public static List<Rule> getIncorrect(List<Rule> rules,List<TemplGraph> templGraphs){
+//		TGraphToDot tDot=new TGraphToDot();
+//		List<Action> actions=tDot.getActions(rules,templGraphs);
+//		///////判断action是否有效
+//		List<Rule> incorrectRules=new ArrayList<Rule>();
+//		for(Action action:actions) {
+//			if(action.getToState()==null) {
+//				for(Rule rule:action.getRules()) {
+//					boolean exist=false;
+//					for(Rule inrule:incorrectRules) {
+//						if(inrule.getRuleName().equals(rule.getRuleName())) {
+//							exist=true;
+//							break;
+//						}
+//					}
+//					if(!exist) {
+//						incorrectRules.add(rule);
+//					}
+//				}
+//			}
+//		}
+//		
+//		return incorrectRules;
+//	}
+	
+
+	
+	
+	public AllRuleAnalysisResult getAllRuleAnalysis(List<Scene> scenes,List<Rule> rules,List<String> properties,String filePath,String initFileName,String simulationTime,String equivalentTime,String intervalTime) throws DocumentException {
 		///////////////////////先进行deviceAnalysisResult
 		SceneService sceneService=new SceneService();
 		List<Scene> newScenes=new ArrayList<Scene>();
+		PropertyAnalysisService propertyAnalysisService=new PropertyAnalysisService();
 		AllRuleAnalysisResult allRuleAnalysisResult=new AllRuleAnalysisResult();
 		ToNode toNode=new ToNode();
 		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
@@ -129,6 +1010,14 @@ public class RuleAnalysisService {
 			scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,"D:\\workspace", initFileName, equivalentTime, intervalTime);
 			newScenes.add(scene);
 		}
+		List<PropertyAnalysis> propertyAnalysis=new ArrayList<PropertyAnalysis>();
+		if(properties.size()>0) {
+			for(String property:properties) {
+				propertyAnalysis.add(propertyAnalysisService.analyzeProperty(property, newScenes));
+				
+			}
+		}
+		allRuleAnalysisResult.propertyAnalysis=propertyAnalysis;
 		
 		List<RuleAndCause> rulesNeverTriggered=getRulesNeverTriggered(newScenes, rules,graphNodes);
 		List<String> devicesWithConflict=getDevicesWithConflict(newScenes);
@@ -159,6 +1048,7 @@ public class RuleAnalysisService {
 			DeviceAllSceneConflictRule deviceAllSceneConflictRule=new DeviceAllSceneConflictRule();
 			List<CountStatesCauseRuleSceneName> allCountStateCauseRuleSceneName=new ArrayList<CountStatesCauseRuleSceneName>();
 			for(SceneConflictStateCauseRule sceneConflictStateCauseRule:deviceSceneConflictCauseRule.scenesConflcitStateCasueRule) {
+				
 				for(CountStatesCauseRule sceneCountStatesCauseRule:sceneConflictStateCauseRule.conflictCauseRuleStatistic) {
 //					Iterator<StateCauseRule> stateCauseRulesIterator=sceneCountStatesCauseRule.statesCauseRule.iterator();
 //					while(stateCauseRulesIterator.hasNext()) {
@@ -167,6 +1057,7 @@ public class RuleAnalysisService {
 //							stateCauseRulesIterator.remove();
 //						}
 //					}
+					
 					boolean noCauseRule=false;
 					for(StateCauseRule stateCauseRule:sceneCountStatesCauseRule.statesCauseRule) {
 						if(stateCauseRule.causeRules.size()==0) {
@@ -174,7 +1065,8 @@ public class RuleAnalysisService {
 							break;
 						}
 					}
-					if(noCauseRule) {
+					
+					if(noCauseRule ) {
 						continue;
 					}
 					boolean exist=false;
@@ -206,13 +1098,19 @@ public class RuleAnalysisService {
 			List<StateCauseRuleCountSceneName> allFastChangeStateCauseRuleCountSceneName=new ArrayList<StateCauseRuleCountSceneName>();
 			for(SceneFastChangeCauseRule sceneFastChangeCauseRule:deviceSceneFastChangeCauseRule.scenesFastChangeCauseRule) {
 				for(StateCauseRuleCount sceneStateCauseRuleCount:sceneFastChangeCauseRule.fastChangeStateCauseRuleCountList) {
+					
 					boolean exist=false;
 					for(StateCauseRuleCountSceneName stateCauseRuleCountSceneName:allFastChangeStateCauseRuleCountSceneName) {
 						if(stateCauseRuleCountSceneName.stateName.equals(sceneStateCauseRuleCount.stateName)) {
 							exist=true;
 							for(RuleCount ruleCount:sceneStateCauseRuleCount.rulesCount) {
+								if(ruleCount.count<=1) {
+									//////////////////不考虑次数小于等于1的causeRule
+									continue;
+								}
 								boolean existRule=false;
 								for(RuleCountSceneName ruleCountExist:stateCauseRuleCountSceneName.rulesCountSceneName) {
+									///////////////////////////////count<=1的不去考虑  TODO
 									if(ruleCount.causeRule.selfRule.getRuleName().equals(ruleCountExist.ruleCount.causeRule.selfRule.getRuleName())) {
 										existRule=true;
 										ruleCountExist.ruleCount.count+=ruleCount.count;
@@ -233,6 +1131,10 @@ public class RuleAnalysisService {
 						StateCauseRuleCountSceneName stateCauseRuleCountSceneName=new StateCauseRuleCountSceneName();
 						stateCauseRuleCountSceneName.stateName=sceneStateCauseRuleCount.stateName;
 						for(RuleCount ruleCount:sceneStateCauseRuleCount.rulesCount) {
+							if(ruleCount.count<=1) {
+								//////////////////不考虑次数小于等于1的causeRule
+								continue;
+							}
 							RuleCountSceneName ruleCountExist=new RuleCountSceneName();
 							ruleCountExist.ruleCount=ruleCount;
 							ruleCountExist.sceneNames.add(sceneFastChangeCauseRule.sceneName);

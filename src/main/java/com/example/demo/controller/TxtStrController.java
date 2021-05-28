@@ -43,6 +43,7 @@ import com.example.demo.bean.StateCauseRulesAndRelativeRules;
 import com.example.demo.bean.StateChangeCauseRuleInput;
 import com.example.demo.bean.StateChangeCauseRules;
 import com.example.demo.bean.StateChangeFast;
+import com.example.demo.bean.StaticAnalysisResult;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.WholeAndCurrentChangeCauseRule;
 import com.example.demo.service.GenerateSysDeclaration;
@@ -66,57 +67,82 @@ public class TxtStrController {
 		TxtStrController txtController=new TxtStrController();
 		SceneTreeService sceneTreeService=new SceneTreeService();
 		RuleService ruleService=new RuleService();	
-		String ruleText=" IF Person.number>0 AND Air.temperature<=10.0 THEN M.wclosePulse\r\n" + 
+		String ruleText="1. IF SmartHomeSecurity.homeMode AND temperature<=15 THEN M.heatonPulse\r\n" + 
 				"\r\n" + 
-				" IF Person.number>0 AND Air.temperature>=35.0 THEN M.wopenPulse\r\n" + 
+				"2. IF SmartHomeSecurity.homeMode AND temperature>=30 THEN M.accoolPulse\r\n" + 
 				"\r\n" + 
-				" IF Person.number>0 AND Air.temperature>=25.0 THEN M.coldPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.number>0 AND Air.temperature<=21.0 THEN M.hotPulse\r\n" + 
-				" \r\n" + 
-				
-				" \r\n" + 
-				" IF Person.number>0 AND Air.temperature>30.0 THEN M.fonPulse\r\n" + 
+				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN M.honPulse\r\n" + 
 				"\r\n" + 
-				
+				"4. IF SmartHomeSecurity.homeMode AND humidity>=45 THEN M.hoffPulse\r\n" + 
 				"\r\n" + 
-				" IF AirConditioner.hotOn THEN M.wclosePulse\r\n" + 
+				"5. IF SmartHomeSecurity.homeMode AND humidity>65 THEN M.fonPulse\r\n" + 
 				"\r\n" + 
-				" IF AirConditioner.coldOn THEN M.wclosePulse\r\n" + 
-				" \r\n" + 
-				" IF Person.distanceFromMc<=2 THEN M.monPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.distanceFromPro<=2 THEN M.ponPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.number>0 AND rain=0 THEN M.wopenPulse,M.bopenPulse\r\n" + 
+				"6. IF SmartHomeSecurity.homeMode AND temperature>28 THEN M.fonPulse\r\n" + 
 				"\r\n" + 
-				" IF Projector.pon THEN M.bclosePulse,M.wclosePulse\r\n" + 
-				" \r\n" + 
-				" IF Person.number>0 AND Air.co2ppm>800.0 THEN M.afonPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.number>0 AND Air.humidity<30.0 THEN M.ahonPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.distanceFromPro>2 THEN M.poffPulse\r\n" + 
-				" \r\n" + 
-				" IF Air.co2ppm<=400.0 THEN M.afoffPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.distanceFromMc>2 THEN M.moffPulse\r\n" + 
-				" \r\n" + 
-				" IF Air.humidity>=30.0 THEN M.ahoffPulse\r\n" + 
-				" \r\n" + 
-				" IF Person.number=0 FOR 30m THEN M.poffPulse,M.wclosePulse,M.bclosePulse,M.aoffPulse,M.afoffPulse,M.boffPulse,M.moffPulse,M.ahoffPulse,M.foffPulse\r\n" + 
-				" \r\n" + 
-				" IF Air.humidity>60.0 THEN M.wclosePulse \r\n" + 
-				" \r\n" + 
-				" IF rain=1 THEN M.wclosePulse";
-		String initModelName="window22.xml";
+				"7. IF SmartHomeSecurity.homeMode AND temperature<20 THEN M.foffPulse\r\n" + 
+				"\r\n" + 
+				"8. IF SmartHomeSecurity.homeMode AND rain=1 THEN M.phlwhitePulse\r\n" + 
+				"\r\n" + 
+				"9. IF SmartHomeSecurity.homeMode AND temperature<=10 THEN M.phlbluePulse\r\n" + 
+				"\r\n" + 
+				"10. IF SmartHomeSecurity.homeMode AND leak=1 THEN M.phlbluePulse\r\n" + 
+				"\r\n" + 
+				"11. IF SmartHomeSecurity.awayMode THEN M.phloffPulse\r\n" + 
+				"\r\n" + 
+				"12. IF SmartHomeSecurity.homeMode THEN M.phlwhitePulse\r\n" + 
+				"\r\n" + 
+				"13. IF Door.dopen THEN M.phlwhitePulse\r\n" + 
+				"\r\n" + 
+				"14. IF SmartHomeSecurity.homeMode AND co2ppm>=1000 THEN M.phlredPulse\r\n" + 
+				"\r\n" + 
+				"15. IF SmartHomeSecurity.awayMode THEN M.foffPulse\r\n" + 
+				"\r\n" + 
+				"16. IF Door.dopen THEN M.heatoffPulse\r\n" + 
+				"\r\n" + 
+				"17. IF Window.wopen THEN M.heatoffPulse\r\n" + 
+				"\r\n" + 
+				"18. IF SmartHomeSecurity.awayMode THEN M.heatoffPulse,M.acoffPulse,M.foffPulse,M.bclosePulse,M.boffPulse\r\n" + 
+				"\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN M.acheatPulse\r\n" + 
+				"\r\n" + 
+				"20. IF SmartHomeSecurity.homeMode AND temperature>30 THEN M.accoolPulse\r\n" + 
+				"\r\n" + 
+				"21. IF SmartHomeSecurity.homeMode THEN M.rdockPulse\r\n" + 
+				"\r\n" + 
+				"22. IF SmartHomeSecurity.awayMode THEN M.rstartPulse\r\n" + 
+				"\r\n" + 
+				"23. IF SmartHomeSecurity.awayMode THEN M.wclosePulse,M.dclosePulse\r\n" + 
+				"\r\n" + 
+				"24. IF number>0 THEN M.homeModePulse\r\n" + 
+				"\r\n" + 
+				"25. IF number=0 THEN M.awayModePulse\r\n" + 
+				"\r\n" + 
+				"26. IF SmartHomeSecurity.homeMode AND temperature>28 THEN M.bopenPulse\r\n" + 
+				"\r\n" + 
+				"27. IF SmartHomeSecurity.homeMode THEN M.bonPulse\r\n" + 
+				"\r\n" + 
+				"28. IF SmartHomeSecurity.homeMode AND co2ppm>=800 THEN M.fonPulse,M.wopenPulse\r\n" + 
+				"\r\n" + 
+				"29. IF AirConditioner.cool THEN M.wclosePulse\r\n" + 
+				"\r\n" + 
+				"30. IF AirConditioner.heat THEN M.wclosePulse";
+		String initModelName="exp0108-person-dif.xml";
 		String simulationTime="300";
+		String equivalentTime="24";
+		String intervalTime="300";
 		ruleText=ruleText.replace("\r\n", "\n");
 		List<Rule> rules=ruleService.getRuleList(ruleText);
 		System.out.println(rules);
 		
 		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, "D:\\example", initModelName, simulationTime);
 		System.out.println(generateModelParameters);
+		List<Scene> scenes=txtController.simulateAllModels(generateModelParameters, initModelName);
+		AllScenesAnalysisInput allScenesAnalysisInput=new AllScenesAnalysisInput();
+		allScenesAnalysisInput.rules=rules;
+		allScenesAnalysisInput.scenes=scenes;
+		allScenesAnalysisInput.properties.add("Humidifier.hoff &  AirConditioner.cool");
+		AllRuleAnalysisResult allRuleAnalysisResult=txtController.getAllScenesRulesAnalysisResult(allScenesAnalysisInput, initModelName, simulationTime, equivalentTime, intervalTime);
+		System.out.println(allRuleAnalysisResult);
 		
 
 	}
@@ -168,19 +194,37 @@ public class TxtStrController {
 ////		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, "D:\\workspace", initModelName, simulationTime);
 //		return rules;
 //	}
-
+	
+	@RequestMapping(value="/getStaticAnalysisResult",method = RequestMethod.POST)
+	@ResponseBody
+	public StaticAnalysisResult getStaticAnalysisResult(@RequestBody List<String> ruleTextLines,String initFileName) throws DocumentException, IOException {
+		RuleService ruleService=new RuleService();		
+		List<Rule> rules=ruleService.getRuleList(ruleTextLines);
+		StaticAnalysisResult staticAnalysisResult=RuleAnalysisService.getRequirementError(rules, initFileName);
+		return staticAnalysisResult;
+	}
+	
 	@RequestMapping(value="/generateAllModels",method = RequestMethod.POST)
 	@ResponseBody
-	public GenerateModelParameters generateAllModels(@RequestBody List<String> ruleTextLines,String initModelName,String simulationTime) throws DocumentException, IOException {
-		SceneTreeService sceneTreeService=new SceneTreeService();
-		RuleService ruleService=new RuleService();		
-//		String test="test";
-		List<Rule> rules=ruleService.getRuleList(ruleTextLines);
-		
+	public GenerateModelParameters generateAllModels(@RequestBody List<Rule> rules,String initModelName,String simulationTime) throws DocumentException, IOException {
+		SceneTreeService sceneTreeService=new SceneTreeService();		
 		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, "D:\\workspace", initModelName, simulationTime);
 		generateModelParameters.rules=rules;
 		return generateModelParameters;
 	}
+
+//	@RequestMapping(value="/generateAllModels",method = RequestMethod.POST)
+//	@ResponseBody
+//	public GenerateModelParameters generateAllModels(@RequestBody List<String> ruleTextLines,String initModelName,String simulationTime) throws DocumentException, IOException {
+//		SceneTreeService sceneTreeService=new SceneTreeService();
+//		RuleService ruleService=new RuleService();		
+//
+//		List<Rule> rules=ruleService.getRuleList(ruleTextLines);
+//		
+//		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, "D:\\workspace", initModelName, simulationTime);
+//		generateModelParameters.rules=rules;
+//		return generateModelParameters;
+//	}
 	
 	@RequestMapping(value="/simulateAllModels",method = RequestMethod.POST)
 	@ResponseBody
@@ -194,6 +238,7 @@ public class TxtStrController {
 		
 		return scenes;
 	}
+	
 	@RequestMapping(value="/simulateModels",method = RequestMethod.POST)
 	@ResponseBody
 	public GenerateModelParametersAndScene simulateModel(@RequestBody GenerateModelParameters generateModelParameters,String sceneName,String initModelName) throws DocumentException, IOException {
@@ -371,6 +416,8 @@ public class TxtStrController {
 		return stateChangeCauseRulesList;
 	}
 	
+
+	
 	
 	@RequestMapping(value="/getAllScenesRulesAnalysisResult",method = RequestMethod.POST)
 	@ResponseBody
@@ -380,11 +427,14 @@ public class TxtStrController {
 		RuleAnalysisService ruleAnalysisService=new RuleAnalysisService();
 		List<Scene> scenes=new ArrayList<Scene>();
 		List<Rule> rules=new ArrayList<Rule>();
+		List<String> properties=new ArrayList<String>();
 		AllRuleAnalysisResult allRuleAnalysisResult=new AllRuleAnalysisResult();
 		scenes=allScenesAnalysisInput.scenes;
 		rules=allScenesAnalysisInput.rules;
+		properties= allScenesAnalysisInput.properties;
 		System.out.println(" initFileName:"+initFileName+" simulationTime:"+simulationTime+" equivalentTime:"+equivalentTime+" intervalTime:"+intervalTime);
-		allRuleAnalysisResult=ruleAnalysisService.getAllRuleAnalysis(scenes, rules, "D:\\workspace", initFileName, simulationTime, equivalentTime, intervalTime);
+		
+		allRuleAnalysisResult=ruleAnalysisService.getAllRuleAnalysis(scenes, rules,properties, "D:\\workspace", initFileName, simulationTime, equivalentTime, intervalTime);
 		
 		
 		return allRuleAnalysisResult;
@@ -414,6 +464,8 @@ public class TxtStrController {
 		
 		return rulesAndCause;
 	}
+	
+	
 
 
 }

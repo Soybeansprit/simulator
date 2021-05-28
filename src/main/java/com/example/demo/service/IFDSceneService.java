@@ -10,11 +10,13 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.bean.GraphNode;
 import com.example.demo.bean.IFDModelParameters;
+import com.example.demo.bean.Action;
 import com.example.demo.bean.GenerateModelParameters;
 import com.example.demo.bean.Parameter;
 import com.example.demo.bean.Rule;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.TemplGraphNode;
+import com.example.demo.bean.Trigger;
 import com.example.demo.service.AnalyseIFD.RuleAndTriggerRules;
 import com.example.demo.service.AnalyseIFD.TriggerStopRules;
 import com.example.demo.service.GetTemplate.Template;
@@ -53,6 +55,7 @@ public class IFDSceneService {
 			System.out.println(templGraph.name);
 			System.out.println(templGraph.declaration);
 			if(templGraph.declaration.indexOf("biddable")>=0 && templGraph.declaration.indexOf("sensor")<0) {
+				/////monitored entity
 				List<List<TemplGraph>> allbpGraphs=new ArrayList<List<TemplGraph>>();
 				for(TemplGraphNode node:templGraph.templGraphNodes) {
 					if(node.style.equals("branchpoint")) {
@@ -66,7 +69,7 @@ public class IFDSceneService {
 					//一个
 					determineTemplGraphs.add(determinGraphs.get(0));
 				}else {
-					//多个确定模型
+					//多个确g定模型
 					if(templGraph.parameter==null) {
 						geModel.finalDetermine(determinGraphs);
 						for(TemplGraph deterGraph:determinGraphs) {
@@ -81,6 +84,7 @@ public class IFDSceneService {
 				}
 			}
 		}
+		
 		
 		//确定化自治模型
 		for(int i=0;i<determineTemplGraphs.size();i++) {
@@ -108,12 +112,13 @@ public class IFDSceneService {
 	}
 	
 	
-	public IFDModelParameters generateIFDModel(String middleChangedFilePath,String finalIfdFilePath,String ifdDotPath,List<TemplGraph> templGraphs,List<Rule> rules,String simulationTime) throws DocumentException, IOException {
+	public IFDModelParameters generateIFDModel(String middleChangedFilePath,String finalIfdFilePath,String ifdDotPath,List<TemplGraph> templGraphs,List<Rule> rules,List<Action> actions,List<Trigger> triggers,String simulationTime) throws DocumentException, IOException {
 		ToNode toNode=new ToNode();
 		AnalyseIFD anaIFD=new AnalyseIFD();
 		SetParameter setParameter=new SetParameter();
 		ModifyContrAndEnvModel modifyModel=new ModifyContrAndEnvModel();
 		GenerateSysDeclaration gSysDeclar=new GenerateSysDeclaration();
+		TGraphToDot tDot=new TGraphToDot();
 		
 		
 		IFDModelParameters ifdModelParameters=new IFDModelParameters();
@@ -246,13 +251,23 @@ public class IFDSceneService {
 			System.out.println("  "+parameter.getInitValue());
 		}
 		
+//		for(Action action:actions) {
+//			System.out.println();
+//			System.out.println();
+//			System.out.println("action:");
+//			System.out.println(action.action);
+//			System.out.println(action.device);
+//			System.out.println(action.toState);
+//		}
+		
 		////////////////////////确定自治模型每个时间点的值//////////////////////////////
 		/////////////////////////这个是通用的/////////////////////////////
 		instances=getDeclareInstance(templGraphs, Integer.parseInt(simulationTime));
-		
+//		List<Action> actions=tDot.getActions(rules, templGraphs);
+//		List<Trigger> triggers=tDot.getTriggers(rules);
 
 		gSysDeclar.globalDeclaration(finalIfdFilePath, finalIfdFilePath,parameters);
-		gSysDeclar.modelDeclaration(finalIfdFilePath,finalIfdFilePath, templGraphs,instances);		
+		gSysDeclar.modelDeclaration(finalIfdFilePath,finalIfdFilePath, templGraphs,instances,actions,triggers);		
 		gSysDeclar.setQuery(finalIfdFilePath,finalIfdFilePath, parameters,simulationTime);
 		
 		ifdModelParameters.attributes=attributes;
@@ -271,6 +286,7 @@ public class IFDSceneService {
 		SetParameter setParameter=new SetParameter();
 		ModifyContrAndEnvModel modifyModel=new ModifyContrAndEnvModel();
 		GenerateSysDeclaration gSysDeclar=new GenerateSysDeclaration();
+		TGraphToDot tDot=new TGraphToDot();
 		
 		ParameterInstances pamaInst=new ParameterInstances();
 
@@ -414,10 +430,11 @@ public class IFDSceneService {
 			////////////////////////确定自治模型每个时间点的值//////////////////////////////
 			/////////////////////////这个是通用的/////////////////////////////
 			instances=getDeclareInstance(templGraphs, allTime);
-			
+			List<Action> actions=tDot.getActions(rules, templGraphs);
+			List<Trigger> triggers=tDot.getTriggers(rules);
 
 			gSysDeclar.globalDeclaration(finalModelPathNameIFD, finalModelPathNameIFD,parameters);
-			gSysDeclar.modelDeclaration(finalModelPathNameIFD,finalModelPathNameIFD, templGraphs,instances);		
+			gSysDeclar.modelDeclaration(finalModelPathNameIFD,finalModelPathNameIFD, templGraphs,instances,actions,triggers);		
 			gSysDeclar.setQuery(finalModelPathNameIFD,finalModelPathNameIFD, parameters,String.valueOf(allTime));
 
 		}
