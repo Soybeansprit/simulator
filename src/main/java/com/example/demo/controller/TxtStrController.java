@@ -46,6 +46,7 @@ import com.example.demo.bean.StateChangeFast;
 import com.example.demo.bean.StaticAnalysisResult;
 import com.example.demo.bean.TemplGraph;
 import com.example.demo.bean.WholeAndCurrentChangeCauseRule;
+import com.example.demo.service.AddressService;
 import com.example.demo.service.GenerateSysDeclaration;
 import com.example.demo.service.RuleAnalysisService;
 import com.example.demo.service.RuleService;
@@ -164,6 +165,7 @@ public class TxtStrController {
 	TGraphToDot tDot;
 	
 	
+	
 	@RequestMapping("/upload")
 	@ResponseBody
 	public void uploadFile(@RequestParam("file") MultipartFile uploadedFile) throws DocumentException, IOException {
@@ -173,7 +175,7 @@ public class TxtStrController {
         }
         // BMP、JPG、JPEG、PNG、GIF
         String initFileName = uploadedFile.getOriginalFilename();
-        String filePath="D:\\workspace"+"\\"+initFileName;
+        String filePath=AddressService.MODEL_FILE_PATH+"\\"+initFileName;
         BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath));
 
         outputStream.write(uploadedFile.getBytes());
@@ -200,7 +202,7 @@ public class TxtStrController {
 	public StaticAnalysisResult getStaticAnalysisResult(@RequestBody List<String> ruleTextLines,String initFileName) throws DocumentException, IOException {
 		RuleService ruleService=new RuleService();		
 		List<Rule> rules=ruleService.getRuleList(ruleTextLines);
-		StaticAnalysisResult staticAnalysisResult=RuleAnalysisService.getRequirementError(rules, initFileName);
+		StaticAnalysisResult staticAnalysisResult=RuleAnalysisService.getRequirementError(rules, initFileName,AddressService.MODEL_FILE_PATH);
 		return staticAnalysisResult;
 	}
 	
@@ -208,7 +210,7 @@ public class TxtStrController {
 	@ResponseBody
 	public GenerateModelParameters generateAllModels(@RequestBody List<Rule> rules,String initModelName,String simulationTime) throws DocumentException, IOException {
 		SceneTreeService sceneTreeService=new SceneTreeService();		
-		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, "D:\\workspace", initModelName, simulationTime);
+		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules, AddressService.MODEL_FILE_PATH, initModelName, simulationTime);
 		generateModelParameters.rules=rules;
 		return generateModelParameters;
 	}
@@ -234,8 +236,7 @@ public class TxtStrController {
 		List<Scene> scenes=new ArrayList<Scene>();
 		int simulationDataNum=generateModelParameters.simulationDataNum;
 		ScenesTree scenesTree=generateModelParameters.scenesTree;
-		scenes=sceneService.getAllSimulationDataTimeValue(scenesTree, "D:\\workspace", initModelName, "D:\\tools\\uppaal-4.1.24\\uppaal-4.1.24\\bin-Windows", simulationDataNum);
-		
+		scenes=sceneService.getAllSimulationDataTimeValue(scenesTree, AddressService.MODEL_FILE_PATH, initModelName, AddressService.UPPAAL_PATH, simulationDataNum);
 		return scenes;
 	}
 	
@@ -248,7 +249,7 @@ public class TxtStrController {
 		
 		
 		int simulationDataNum=generateModelParameters.simulationDataNum;
-		Scene scene=sceneService.getSimulationDataTimeValue(sceneName, "D:\\workspace", initModelName, "D:\\tools\\uppaal-4.1.24\\uppaal-4.1.24\\bin-Windows", simulationDataNum);
+		Scene scene=sceneService.getSimulationDataTimeValue(sceneName, AddressService.MODEL_FILE_PATH, initModelName, AddressService.UPPAAL_PATH, simulationDataNum);
 		generateModelParametersAndScene.generateModelParameters=generateModelParameters;
 		generateModelParametersAndScene.scene=scene;
 		return generateModelParametersAndScene;
@@ -263,7 +264,7 @@ public class TxtStrController {
 		Scene scene=rulesSceneSimulationTime.scene;
 		List<Rule> rules=rulesSceneSimulationTime.rules;
 		String simulationTime=rulesSceneSimulationTime.simulationTime;
-		scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,"D:\\workspace", initModelName, equivalentTime, intervalTime);
+		scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,AddressService.MODEL_FILE_PATH, initModelName, equivalentTime, intervalTime);
 
 		return scene;
 	}
@@ -278,7 +279,7 @@ public class TxtStrController {
 		List<Rule> rules=rulesAllScenesSimulationTime.rules;
 		String simulationTime=rulesAllScenesSimulationTime.simulationTime;
 		for(Scene scene:scenes) {
-			scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,"D:\\workspace", initModelName, equivalentTime, intervalTime);
+			scene=sceneService.getDeviceAnalysisResult(scene, rules, simulationTime,AddressService.MODEL_FILE_PATH, initModelName, equivalentTime, intervalTime);
 			newScenes.add(scene);
 		}
 		
@@ -317,7 +318,7 @@ public class TxtStrController {
 		List<Rule> rules=causeRuleInput.rules;
 		List<GraphNode> graphNodes=new ArrayList<GraphNode>();
 		
-		graphNodes=toNode.getGraphNodes("D:\\workspace", initModelName);
+		graphNodes=toNode.getGraphNodes(AddressService.MODEL_FILE_PATH, initModelName);
 		stateAndRuleAndCauseRules=sceneService.getDeviceConflictCauseRules(conflictStateTime, triggeredRulesName, deviceStateName, rules, graphNodes);
 		return stateAndRuleAndCauseRules;
 	}
@@ -326,8 +327,7 @@ public class TxtStrController {
 	@ResponseBody
 	public List<List<StateAndRuleAndCauseRule>> getAllConflictCauseAnalysisResult(@RequestBody AllCauseRuleInput allCauseRuleInput,String initModelName) throws DocumentException, IOException {
 			
-		SceneService sceneService=new SceneService();
-		ToNode toNode=new ToNode();
+
 		
 		List<List<StateAndRuleAndCauseRule>> stateAndRuleAndCauseRulesList=new ArrayList<List<StateAndRuleAndCauseRule>>();
 		for(int i=0;i<allCauseRuleInput.conflictStateTimes.size();i++) {
@@ -362,7 +362,7 @@ public class TxtStrController {
 		List<Rule> rules=new ArrayList<Rule>();
 		List<Scene> scenes=new ArrayList<Scene>();
 		List<List<StateAndRuleAndCauseRule>> stateAndRuleAndCauseRulesList=new ArrayList<List<StateAndRuleAndCauseRule>>();
-		graphNodes=toNode.getGraphNodes("D:\\workspace", initModelName);
+		graphNodes=toNode.getGraphNodes(AddressService.MODEL_FILE_PATH, initModelName);
 		rules=allScenesConflictInput.rules;
 		scenes=allScenesConflictInput.scenes;
 		
@@ -434,7 +434,7 @@ public class TxtStrController {
 		properties= allScenesAnalysisInput.properties;
 		System.out.println(" initFileName:"+initFileName+" simulationTime:"+simulationTime+" equivalentTime:"+equivalentTime+" intervalTime:"+intervalTime);
 		
-		allRuleAnalysisResult=ruleAnalysisService.getAllRuleAnalysis(scenes, rules,properties, "D:\\workspace", initFileName, simulationTime, equivalentTime, intervalTime);
+		allRuleAnalysisResult=ruleAnalysisService.getAllRuleAnalysis(scenes, rules,properties, AddressService.MODEL_FILE_PATH, initFileName, simulationTime, equivalentTime, intervalTime);
 		
 		
 		return allRuleAnalysisResult;
@@ -451,7 +451,7 @@ public class TxtStrController {
 		List<Rule> causeRules=ruleCauseRuleInput.causeRules;
 		List<Rule> rules=ruleCauseRuleInput.rules;
 		List<RuleAndCause> rulesAndCause=new ArrayList<RuleAndCause>();
-		graphNodes=toNode.getGraphNodes("D:\\workspace", initFileName);
+		graphNodes=toNode.getGraphNodes(AddressService.MODEL_FILE_PATH, initFileName);
 		for(Rule rule:causeRules) {
 			RuleAndCause ruleAndCause=sceneService.getRuleCauseRulesfromIFDGraph(graphNodes, rules, rule.getRuleName());
 			rulesAndCause.add(ruleAndCause);

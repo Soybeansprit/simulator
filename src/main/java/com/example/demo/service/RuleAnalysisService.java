@@ -143,19 +143,19 @@ public class RuleAnalysisService {
 		String simulationTime="300";
 		List<Rule> rules=ruleService.getRuleList(ruleText);
 		System.out.println(rules);
-		StaticAnalysisResult staticAnalysisResult=getRequirementError(rules, "exp0108-person-dif-change.xml");
+		StaticAnalysisResult staticAnalysisResult=getRequirementError(rules, "exp0108-person-dif-change.xml","D:\\workspace");
 		List<Rule> newRules=deleteRepeat(rules);
 		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules,"D:\\workspace", initModelName, simulationTime);
 		List<Scene> scenes=new ArrayList<Scene>();
 		int simulationDataNum=generateModelParameters.simulationDataNum;
 		ScenesTree scenesTree=generateModelParameters.scenesTree;
-		scenes=sceneService.getAllSimulationDataTimeValue(scenesTree, "D:\\workspace", initModelName, "D:\\tools\\uppaal-4.1.24\\uppaal-4.1.24\\bin-Windows", simulationDataNum);
+		scenes=sceneService.getAllSimulationDataTimeValue(scenesTree, "D:\\workspace", initModelName, AddressService.UPPAAL_PATH, simulationDataNum);
 //		ruleAnalysisService.getAllRuleAnalysis(scenes, rules, "D:\\workspace", initModelName, simulationTime, "24", "300");
 
 	}
 	
 	
-	public static StaticAnalysisResult getRequirementError(List<Rule> rules, String initFileName) throws DocumentException, IOException {
+	public static StaticAnalysisResult getRequirementError(List<Rule> rules, String initFileName,String filePath) throws DocumentException, IOException {
 		GetTemplate getTemplate=new GetTemplate();
 		////返回可用的rules和各种错误
 		HashMap<String,Rule> mapRules=new HashMap<String,Rule>();
@@ -168,9 +168,9 @@ public class RuleAnalysisService {
 		//转成可解析xml文件
 		String initFileModelName=initFileName.replace(".xml", "");
 		String middleChangedModelFileName=initFileModelName+"-change";
-		getTemplate.deletLine("D:\\workspace"+"\\"+initFileName, "D:\\workspace"+"\\"+middleChangedModelFileName+".xml", 2);
+		getTemplate.deletLine(filePath+"\\"+initFileName, filePath+"\\"+middleChangedModelFileName+".xml", 2);
 		
-		List<TemplGraph> templGraphs=templGraphService.getTemplGraphs("D:\\workspace"+"\\"+middleChangedModelFileName+".xml");
+		List<TemplGraph> templGraphs=templGraphService.getTemplGraphs(filePath+"\\"+middleChangedModelFileName+".xml");
 		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
 		for(TemplGraph templGraph:templGraphs) {
 			if(templGraph.declaration.indexOf("controlled_device")>=0) {
@@ -195,8 +195,8 @@ public class RuleAnalysisService {
 		///////////////////删除重复的规则
 		List<Rule> newRules=deleteRepeat(rules);
 		
-		tDot.getIFD(templGraphs, newRules, "D:\\workspace"+"\\"+initFileName+".dot");
-		List<GraphNode> nodes=toNode.getNodes("D:\\workspace"+"\\"+initFileName+".dot");
+		tDot.getIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
+		List<GraphNode> nodes=toNode.getNodes(filePath+"\\"+initFileName+".dot");
 		List<GraphNode> ruleNodes=new ArrayList<GraphNode>();
 		
 		for(GraphNode node:nodes) {
@@ -218,10 +218,10 @@ public class RuleAnalysisService {
 				}
 			}
 		}
-		tDot.getIFD(templGraphs, newRules, "D:\\workspace"+"\\"+initFileName+".dot");
+		tDot.getIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
 		ruleNodes.clear();
 		nodes.clear();
-		nodes=toNode.getNodes("D:\\workspace"+"\\"+initFileName+".dot");
+		nodes=toNode.getNodes(filePath+"\\"+initFileName+".dot");
 		for(GraphNode node:nodes) {
 			if(node.getShape().equals("hexagon")) {
 				ruleNodes.add(node);
@@ -507,44 +507,7 @@ public class RuleAnalysisService {
 						if(pathRuleLists!=null) {
 							/////otherRuleNode的trigger总能指向ruleNode的trigger
 							/////说明是冗余的
-							redundantNodes.addAll(pathRuleLists);
-//							for(GraphNode pointedTriggerNode:pointedTriggerNodes) {
-//								boolean directPoint=false;
-//								for(GraphNodeArrow triggercArrow:pointedTriggerNode.getcNodeList()) {
-//									if(triggercArrow.getGraphNode().getName().equals(otherRuleNode.getName())) {
-//										directPoint=true;
-//										break;
-//									}
-//								}
-//								if(!directPoint) {
-//									for(GraphNodeArrow triggerpArrow:pointedTriggerNode.getpNodeList()) {
-//										if(triggerpArrow.getGraphNode().getShape().indexOf("oval")>=0) {
-//											directPoint=true;
-//											break;
-//										}
-//										if(triggerpArrow.getGraphNode().getShape().indexOf("record")>=0 && triggerpArrow.getStyle()==null) {
-//											GraphNode pActionNode=triggerpArrow.getGraphNode();
-//											List<GraphNode> sourceRuleNodes=getSourceRules(pActionNode);
-//											for(GraphNode sourceRuleNode:sourceRuleNodes) {
-//												boolean existSourceNode=false;
-//												for(GraphNode redundantNode:redundantNodes) {
-//													if(redundantNode.getName().equals(sourceRuleNode.getName())) {
-//														existSourceNode=true;
-//														break;
-//													}
-//												}
-//												if(!existSourceNode) {
-//													redundantNodes.add(sourceRuleNode);
-//												}
-//											}
-//										}
-//										
-//									}
-//								}
-//								
-//								
-//							}
-							
+							redundantNodes.addAll(pathRuleLists);							
 							break first;
 						}
 					}
@@ -560,45 +523,7 @@ public class RuleAnalysisService {
 			for(GraphNode otherRuleNode:otherCauseRuleNodes) {
 				List<GraphNode> pathRuleList=canTraceBack(ruleNode, otherRuleNode,graphNodes);
 				if(pathRuleList!=null) {
-					/////otherRuleNode的trigger总能指向ruleNode的trigger
-					/////说明是冗余的
 					redundantNodes.addAll(pathRuleList);
-//					for(GraphNode pointedTriggerNode:pointedTriggerNodes) {
-//						boolean directPoint=false;
-//						for(GraphNodeArrow triggercArrow:pointedTriggerNode.getcNodeList()) {
-//							if(triggercArrow.getGraphNode().getName().equals(otherRuleNode.getName())) {
-//								directPoint=true;
-//								break;
-//							}
-//						}
-//						if(!directPoint) {
-//							for(GraphNodeArrow triggerpArrow:pointedTriggerNode.getpNodeList()) {
-//								if(triggerpArrow.getGraphNode().getShape().indexOf("oval")>=0) {
-//									directPoint=true;
-//									break;
-//								}
-//								if(triggerpArrow.getGraphNode().getShape().indexOf("record")>=0) {
-//									GraphNode pActionNode=triggerpArrow.getGraphNode();
-//									List<GraphNode> sourceRuleNodes=getSourceRules(pActionNode);
-//									for(GraphNode sourceRuleNode:sourceRuleNodes) {
-//										boolean existSourceNode=false;
-//										for(GraphNode redundantNode:redundantNodes) {
-//											if(redundantNode.getName().equals(sourceRuleNode.getName())) {
-//												existSourceNode=true;
-//												break;
-//											}
-//										}
-//										if(!existSourceNode) {
-//											redundantNodes.add(sourceRuleNode);
-//										}
-//									}
-//								}
-//								
-//							}
-//						}
-//						
-//						
-//					}
 				}
 			}
 		}
@@ -625,27 +550,7 @@ public class RuleAnalysisService {
 		return redundantNodes;
 	}
 	
-	public static List<GraphNode> getSourceRules(GraphNode actionNode){
-		List<GraphNode> sourceRuleNodes=new ArrayList<GraphNode>();
-		for(GraphNodeArrow pArrow:actionNode.getpNodeList()) {
-			if(pArrow.getGraphNode().getShape().indexOf("hexagon")>=0) {
-				sourceRuleNodes.add(pArrow.getGraphNode());
-			}
-		}
-		return sourceRuleNodes;
-	}
-	
-	public static List<GraphNode> getRedundantRuleList(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes) {
-		List<GraphNode> triggerNodes=new ArrayList<GraphNode>();
-		for(GraphNodeArrow pArrow:ruleNode.getpNodeList()) {
-			triggerNodes.add(pArrow.getGraphNode());
-		}
-		for(GraphNode triggerNode:triggerNodes) {
-			return canPointToRule(triggerNode, otherRuleNode, graphNodes);
-		}
-		return null;
-		
-	}
+
 	
 	public static List<GraphNode> canTraceBack(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes){
 		List<GraphNode> ruleList=new ArrayList<GraphNode>();
@@ -699,124 +604,10 @@ public class RuleAnalysisService {
 		return ruleList;
 	}
 	
-	public static List<GraphNode> canPointToRule(GraphNode graphNode,GraphNode ruleNode,List<GraphNode> graphNodes) {
-		Queue<GraphNode> nodeQueue=new LinkedList<GraphNode>();
-		nodeQueue.add(graphNode);
-		graphNode.flag=true;
-		List<GraphNode> ruleList=new ArrayList<GraphNode>();
-		boolean canPointTo=false;
-		first:
-		while(!nodeQueue.isEmpty()) {
-			GraphNode node=nodeQueue.poll();			
-			for(GraphNodeArrow cArrow:node.getcNodeList()) {
-				if(cArrow.getStyle()!=null) {
-					continue;
-				}
-				GraphNode cNode=cArrow.getGraphNode();
-				if(cNode.getName().equals(ruleNode.getName())) {
-					canPointTo=true;
-					ruleList.add(cNode);
-					break first;
-				}else if(!cNode.flag){
-					if(cNode.getShape().equals("hexagon")) {
-						if(canPointToRule(cNode,ruleNode,graphNodes)!=null) {
-							ruleList.add(cNode);							
-						}else {
-							continue;
-						}
-					}
-					nodeQueue.add(cNode);
-					cNode.flag=true;
-				}
-			}
-		}
-		if(!canPointTo) {
-			ruleList=null;
-		}
-		for(GraphNode node:graphNodes) {
-			if(node.flag) {
-				node.flag=false;
-			}
-		}
-		return ruleList;
-	}
+
 	
 	
-	public static List<GraphNode> getPointedTriggers(GraphNode ruleNode,GraphNode otherRuleNode,List<GraphNode> graphNodes){
-		List<GraphNode> pointedTriggerNodes=new ArrayList<GraphNode>();
-		for(GraphNodeArrow pArrow:otherRuleNode.getpNodeList()) {
-			boolean canPointTo=false;
-			GraphNode triggerNode=pArrow.getGraphNode();
-			Queue<GraphNode> nodeQueue=new LinkedList<GraphNode>();
-			nodeQueue.add(triggerNode);
-			triggerNode.flag=true;
-			while(!nodeQueue.isEmpty()) {
-				GraphNode node=nodeQueue.poll();				
-				for(GraphNodeArrow cArrow:node.getcNodeList()) {
-					/////////node直接指向ruleNode
-					if(cArrow.getGraphNode().getName().equals(ruleNode.getName())) {
-						boolean existNode=false;
-						for(GraphNode tNode:pointedTriggerNodes) {
-							if(node.getName().equals(tNode.getName())) {
-								existNode=true;
-								break;
-							}
-						}
-						if(!existNode) {
-							pointedTriggerNodes.add(node);
-						}
-						
-						canPointTo=true;
-						break;
-					}
-					if(!cArrow.getGraphNode().getName().equals(otherRuleNode.getName())&&!cArrow.getGraphNode().flag &&
-							cArrow.getGraphNode().getShape().indexOf("doubleoctagon")<0&&cArrow.getStyle()==null) {
-						GraphNode newNode=cArrow.getGraphNode();
-						nodeQueue.add(newNode);
-						newNode.flag=true;
-					}
-				}
-				//////////能指向ruleNode的trigger
-				if(canPointTo) {
-					break;
-				}				
-			}
-			//////TODO flag有问题
-			///////////////把flag复原
-			
-//			Queue<GraphNode> newNodeQueue=new LinkedList<GraphNode>();
-//			newNodeQueue.add(triggerNode);
-//			triggerNode.flag=false;
-//			while(!newNodeQueue.isEmpty()) {
-//				GraphNode node=newNodeQueue.poll();				
-//				for(GraphNodeArrow cArrow:node.getcNodeList()) {
-//					/////////node直接指向ruleNode
-//					if(cArrow.getGraphNode().flag) {
-//						GraphNode newNode=cArrow.getGraphNode();
-//						newNodeQueue.add(newNode);
-//						newNode.flag=false;
-//					}
-//				}
-//				//////////能指向ruleNode的trigger
-//				if(canPointTo) {
-//					break;
-//				}				
-//			}			
-			
-			for(GraphNode node:graphNodes) {
-				if(node.flag) {
-					node.flag=false;
-				}
-			}
-			///////////////////////////
-			
-			if(!canPointTo) {
-				return null;
-			}
-		}
-		
-		return pointedTriggerNodes;
-	}
+
 	
 	///////////otherRule的action是否包含rule的action
 	public static boolean containActionNode(GraphNode ruleNode,GraphNode otherRuleNode) {
