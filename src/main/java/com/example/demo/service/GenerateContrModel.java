@@ -256,9 +256,11 @@ public class GenerateContrModel {
 				Element sourceElement=transitionElement.addElement("source");
 				Element targetElement=transitionElement.addElement("target");
 				String[] actionTime=rule.getAction().get(i).split("for");
-				actionTime[0]=actionTime[0].trim();
+				if(actionTime[0].indexOf(".")>0)
+				actionTime[0]=actionTime[0].substring(actionTime[0].indexOf(".")).substring(1).trim();
 				if(rule.getAction().get(i).indexOf("for")>0) {
-					actionTime[1]=actionTime[1].trim();
+					if(actionTime[0].indexOf(".")>0)
+					actionTime[1]=actionTime[1].substring(actionTime[0].indexOf(".")).substring(1).trim();
 				}
 				
 				

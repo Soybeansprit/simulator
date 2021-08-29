@@ -73,7 +73,7 @@ public class SceneService {
 				controlledDevices.add(templGraph);
 			}
 		}
-		List<Action> actions=tDot.getActions(rules,controlledDevices);
+		List<Action> actions=tDot.getNewActions(rules,controlledDevices);
 		
 		String allTime="300.0099999998758";
 		String equivalentTime="24";
@@ -269,7 +269,7 @@ public class SceneService {
 				controlledDevices.add(templGraph);
 			}
 		}
-		List<Action> actions=tDot.getActions(rules,controlledDevices);
+		List<Action> actions=tDot.getNewActions(rules,controlledDevices);
 		List<DeviceAnalysResult> devicesAnalysResults=new ArrayList<DeviceAnalysResult>();
 		List<DataTimeValue> rulesTimeValue=new ArrayList<DataTimeValue>();
 		for(DataTimeValue dataTimeValue:scene.getDatasTimeValue()) {

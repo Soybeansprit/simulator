@@ -1,6 +1,8 @@
 package com.example.demo.service;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,18 +24,18 @@ public class TGraphToDot {
 		// TODO Auto-generated method stub
 		
 		//String path1="D:\\window17.xml";
-		String path2="D:\\win21.xml";
-		
-		String rulePath="D:\\rules.txt";
-		String dotPath="D:\\g5.dot";
-		String dotPath1="D:\\g4.dot";
+		String path2="D:\\example\\exp0108-person-dif-new.xml";
+		String path3="D:\\example\\exp0108-person-dif-new-change.xml";
+//		String rulePath="D:\\rules.txt";
+		String dotPath="D:\\example\\exp0108-person-ifd.dot";
+//		String dotPath1="D:\\g4.dot";
 		TGraphToDot tDot = new TGraphToDot();
 		RuleService ruleService=new RuleService();
-		List<Rule> rules=ruleService.getRuleListFromTxt(rulePath);
+//		List<Rule> rules=ruleService.getRuleListFromTxt(rulePath);
 		
 		GetTemplate parse=new GetTemplate();
-		//parse.deletLine(path1, path2, 2);
-		List<Template> templates=parse.getTemplate(path2);
+		parse.deletLine(path2, path3, 2);
+		List<Template> templates=parse.getTemplate(path3);
 		
 		TemplGraphService tGraph=new TemplGraphService();
 		List<TemplGraph> templGraphs=new ArrayList<TemplGraph>();
@@ -41,7 +43,71 @@ public class TGraphToDot {
 			templGraphs.add(tGraph.getTemplGraph(template));
 		}
 		
-		tDot.getIFD(templGraphs, rules, dotPath);
+//		tDot.getIFD(templGraphs, rules, dotPath);
+		
+		String ruleStrList="1. IF SmartHomeSecurity.homeMode AND temperature<=15 THEN Heater.turn_heat_on\r\n" + 
+				"\r\n" + 
+				"2. IF SmartHomeSecurity.homeMode AND temperature>=30 THEN AirConditioner.turn_ac_cool\r\n" + 
+				"\r\n" + 
+				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN Humidifier.turn_hum_on\r\n" + 
+				"\r\n" + 
+				"4. IF SmartHomeSecurity.homeMode AND humidity>=45 THEN Humidifier.turn_hum_off\r\n" + 
+				"\r\n" + 
+				"5. IF SmartHomeSecurity.homeMode AND humidity>65 THEN Fan.turn_fan_on\r\n" + 
+				"\r\n" + 
+				"6. IF SmartHomeSecurity.homeMode AND temperature>28 THEN Fan.turn_fan_on\r\n" + 
+				"\r\n" + 
+				"7. IF SmartHomeSecurity.homeMode AND temperature<20 THEN Fan.turn_fan_off\r\n" + 
+				"\r\n" + 
+				"8. IF SmartHomeSecurity.homeMode AND rain=1 THEN PhilipsHueLight.turn_phl_white\r\n" + 
+				"\r\n" + 
+				"9. IF SmartHomeSecurity.homeMode AND temperature<=10 THEN PhilipsHueLight.turn_phl_blue\r\n" + 
+				"\r\n" + 
+				"10. IF SmartHomeSecurity.homeMode AND leak=1 THEN PhilipsHueLight.turn_phl_blue\r\n" + 
+				"\r\n" + 
+				"11. IF SmartHomeSecurity.awayMode THEN PhilipsHueLight.turn_phl_off\r\n" + 
+				"\r\n" + 
+				"12. IF SmartHomeSecurity.homeMode THEN PhilipsHueLight.turn_phl_white\r\n" + 
+				"\r\n" + 
+				"13. IF Door.dopen THEN PhilipsHueLight.turn_phl_white\r\n" + 
+				"\r\n" + 
+				"14. IF SmartHomeSecurity.homeMode AND co2ppm>=1000 THEN PhilipsHueLight.turn_phl_red\r\n" + 
+				"\r\n" + 
+				"15. IF SmartHomeSecurity.awayMode THEN Fan.turn_fan_on\r\n" + 
+				"\r\n" + 
+				"16. IF Door.dopen THEN Heater.turn_heat_off\r\n" + 
+				"\r\n" + 
+				"17. IF Window.wopen THEN Heater.turn_heat_off\r\n" + 
+				"\r\n" + 
+				"18. IF SmartHomeSecurity.awayMode THEN Heater.turn_heat_off,AirConditioner.turn_ac_off,Fan.turn_fan_off,Blind.close_blind,Bulb.turn_bulb_off\r\n" + 
+				"\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN AirConditioner.turn_ac_heat\r\n" + 
+				"\r\n" + 
+				"20. IF SmartHomeSecurity.homeMode AND temperature>30 THEN AirConditioner.turn_ac_cool\r\n" + 
+				"\r\n" + 
+				"21. IF SmartHomeSecurity.homeMode THEN Robot.dock_robot\r\n" + 
+				"\r\n" + 
+				"22. IF SmartHomeSecurity.awayMode THEN Robot.start_robot\r\n" + 
+				"\r\n" + 
+				"23. IF SmartHomeSecurity.awayMode THEN Window.close_window,Door.close_door\r\n" + 
+				"\r\n" + 
+				"24. IF number>0 THEN SmartHomeSecurity.turn_sms_home\r\n" + 
+				"\r\n" + 
+				"25. IF number=0 THEN SmartHomeSecurity.turn_sms_away\r\n" + 
+				"\r\n" + 
+				"26. IF SmartHomeSecurity.homeMode AND temperature>28 THEN Blind.open_blind\r\n" + 
+				"\r\n" + 
+				"27. IF SmartHomeSecurity.homeMode THEN Bulb.turn_bulb_on\r\n" + 
+				"\r\n" + 
+				"28. IF SmartHomeSecurity.homeMode AND co2ppm>=800 THEN Fan.turn_fan_on,Window.open_window\r\n" + 
+				"\r\n" + 
+				"29. IF AirConditioner.cool THEN Window.close_window\r\n" + 
+				"\r\n" + 
+				"30. IF AirConditioner.heat THEN Window.close_window";
+		
+		List<Rule> rules=ruleService.getRuleList(ruleStrList);
+		System.out.println(rules);
+		tDot.getNewIFD(templGraphs, rules, dotPath);
 		/////////////////////////生成IFD///////////////////////////////
 		//getIFD方法
 		/////根据解析出的Rule类型rules画出trigger->rule->action
@@ -65,17 +131,410 @@ public class TGraphToDot {
 //		tDot.getInstance(Rain, templGraphs);
 		
 		
-		tDot.getDot(templGraphs, rules, dotPath1);
+//		tDot.getDot(templGraphs, rules, dotPath1);
 		
 		
 
 	}
 	
-	////////////////////////////////////////////2020.12.22以前/////////////////////////////////
-	public void getIFDDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
-		GetTemplate parse=new GetTemplate();
-		TGraphToDot tDot = new TGraphToDot();
-		TemplGraphService tGraph=new TemplGraphService();
+//	////////////////////////////////////////////2020.12.22以前/////////////////////////////////
+//	public void getIFDDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
+//		GetTemplate parse=new GetTemplate();
+//		TGraphToDot tDot = new TGraphToDot();
+//		TemplGraphService tGraph=new TemplGraphService();
+//		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
+//		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
+//		List<TemplGraph> biddables=new ArrayList<TemplGraph>();
+//		for(TemplGraph templGraph:templGraphs) {
+//			if(templGraph.declaration!=null) {
+//				if(templGraph.declaration.indexOf("controlled_device")>=0) {
+//					controlledDevices.add(templGraph);
+//				}
+//				if(templGraph.declaration.indexOf("sensor")>=0) {
+//					sensors.add(templGraph);
+//				}				
+//			}
+//			if(templGraph.declaration.indexOf("biddable")>=0) {
+//				biddables.add(templGraph);
+//			}
+//		}
+//		//-------------------写dot文件-----------------------------------
+//		
+//		File graphvizFile=new File(dotPath);
+//		if(!graphvizFile.exists()) {
+//			try {
+//				graphvizFile.createNewFile();
+//			} catch(IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		parse.write(graphvizFile, "", false);
+//		parse.write(graphvizFile, "digraph infoflow{", true);
+//		parse.write(graphvizFile, "rankdir=LR;", true);
+//		parse.write(graphvizFile,  "", true);
+//		///////////////////sensor//////////////////
+//		parse.write(graphvizFile, "///////////////sensors////////////////", true);
+//		for(TemplGraph sensor:sensors) {
+//			String sensorDot=sensor.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"azure3\"]";
+//			parse.write(graphvizFile, sensorDot, true);
+//		}
+//		///////////////////////////////////////////////////
+//		parse.write(graphvizFile, "", true);
+//		
+//		//////////////controlled devices////////////////
+//		parse.write(graphvizFile, "//////////////controlled devices//////////////", true);
+//		for(TemplGraph controlledDevice:controlledDevices) {
+//			//device
+//			String deviceDot=controlledDevice.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"darkseagreen1\"]";
+//			parse.write(graphvizFile, deviceDot, true);			
+//			List<String> actionList=new ArrayList<String>();
+//			for(TemplGraphNode state:controlledDevice.templGraphNodes) {
+//				int flag=0;
+//				for(TemplTransition outTransition:state.outTransitions) {
+//					String synchronisation=outTransition.synchronisation;
+//					if(synchronisation!=null && synchronisation.indexOf("?")>0) {
+//						String action=synchronisation.substring(0, synchronisation.indexOf("?"));
+//						for(String act:actionList) {
+//							if(synchronisation.indexOf(act)>=0) {
+//								flag=1;
+//							}
+//						}
+//						if(flag==0) {
+//							//action
+//							String actionDot=action+"[shape=\"record\",style=\"filled\",fillcolor=\"beige\"]";
+//							parse.write(graphvizFile, actionDot, true);
+//							//actionToDevice
+//							String actionToDeviceDot=action+"->"+controlledDevice.name+"[color=\"lemonchiffon3\"]";
+//							parse.write(graphvizFile, actionToDeviceDot, true);
+//							actionList.add(action);
+//						}
+//					}
+//				}
+//				
+//			}
+//			
+//			
+//			//actionToDevice
+//		}
+//		//////////////////////////////////////////////////////
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "", true);
+//		
+//		/////////////////////rules////////////////////
+//		parse.write(graphvizFile, "////////////////////rules/////////////////////", true);
+//		parse.write(graphvizFile, "", true);
+//		for(Rule rule:rules) {
+//			parse.write(graphvizFile, "///////////////////"+rule.getRuleName()+"////////////////////", true);
+//			//ruleNum节点
+//			String ruleDot=rule.getRuleName()+"[shape=\"hexagon\",style=\"filled\",fillcolor=\"lightskyblue\"]";
+//			parse.write(graphvizFile, ruleDot, true);
+//			//ruleToAction
+//			for(String action:rule.getAction()) {
+//				if(action.indexOf("for")>0) {
+//					action=action.substring(0, action.indexOf("for")).trim();
+//				}
+//				String ruleToActionDot=rule.getRuleName()+"->"+action;
+//				parse.write(graphvizFile, ruleToActionDot, true);
+//			}
+//			
+//			//trigger
+//			for(int i=0;i<rule.getTrigger().size();i++) {
+//				String trigger=rule.getTrigger().get(i);
+//				//trigger节点
+//				String triggerNum=rule.getRuleName()+"trigger"+i;
+//				String triggerDot=triggerNum+"[label=\""+rule.getTrigger()+"\",shape=\"oval\",style=\"filled\",fillcolor=\"lightpink\"]";
+//				parse.write(graphvizFile, triggerDot, true);
+//				//triggerToRule
+//				String triggerToRuleDot=triggerNum+"->"+rule.getRuleName();
+//				parse.write(graphvizFile, triggerToRuleDot, true);
+//				//sensorToTrigger
+//				//先找到trigger对应attribute
+//				if(trigger.indexOf(">")>0) {
+//					String attribute=null;
+//					String valStr=null;
+//					//attribute
+//					if(trigger.indexOf(".")>0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf(">"));
+//					}
+//					//valstr
+//					if(trigger.indexOf("=")>0) {
+//						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//					}else {
+//						valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
+//					}
+//					
+//					//sensorToTrigger
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//							break;
+//						}
+//					}
+//					
+//					//其他设备状态对trigger的影响
+//					
+//					
+//				}else if(trigger.indexOf("<")>0) {
+//					String attribute=null;
+//					String valStr=null;
+//					//attribute
+//					if(trigger.indexOf(".")>0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf("<"));
+//					}
+//					//valstr
+//					if(trigger.indexOf("=")>0) {
+//						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//					}else {
+//						valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
+//					}
+//					
+//					//sensorToTrigger
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//							break;
+//						}
+//					}
+//					//其他设备状态对trigger的影响
+//					
+//					
+//				}else if(trigger.indexOf("=")>0) {
+//					String attribute=null;
+//					//找到rule的trigger涉及的属性
+//					if(trigger.indexOf(".")>=0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf("="));
+//					}
+//					//sensorToTrigger
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//							break;
+//						}
+//					}
+//				}else {
+//					//trigger为设备状态
+//					String stateTrigger=trigger;
+//					String device=stateTrigger.substring(0, stateTrigger.indexOf("."));
+//					String state=stateTrigger.substring(stateTrigger.indexOf(".")).substring(".".length());
+//					//deviceToTrigger
+//					String deviceToTriggerDot=device+"->"+triggerNum+"[color=\"lightpink\"]";
+//					parse.write(graphvizFile, deviceToTriggerDot, true);
+//					//actionToTrigger, trigger为state
+//					for(TemplGraph contrDevice:controlledDevices) {
+//						if(device.equals(contrDevice.name)) {
+//							for(TemplGraphNode sta:contrDevice.templGraphNodes) {
+//								if(state.equals(sta.name)) {									
+//									for(TemplTransition inTransition:sta.inTransitions) {										
+//										if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
+//											String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//											String actionToStateDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//											parse.write(graphvizFile, actionToStateDot, true);
+//											break;
+//										}
+//										
+//									}
+//									break;
+//									
+//								}
+//							}
+//							break;
+//						}
+//					}
+//				}
+//				parse.write(graphvizFile, "", true);
+//			}
+//			parse.write(graphvizFile, "", true);
+//		}
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "}", true);
+//	}
+	
+//	////////////////////////////////////////////2020.12.22以前/////////////////////////////////
+//	public void getDeviceEffect(File graphvizFile,String trigger,String triggerNum,String attribute,String compareStr,List<TemplGraph> controlledDevices) throws IOException {
+//		GetTemplate parse=new GetTemplate();
+//		String valStr=null;
+//		//valstr
+//		if(trigger.indexOf("=")>0) {
+//			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//		}else {
+//			valStr=trigger.substring(trigger.indexOf(compareStr)).substring(compareStr.length());
+//		}
+//		////////////////////effect//////////////////////
+//		//对该trigger有正影响的device的action
+//		for(TemplGraph device:controlledDevices) {
+//			for(TemplGraphNode state:device.templGraphNodes) {
+//				if(state.invariant!=null && state.invariant.indexOf(attribute)>0) {
+//					String[] invariants=state.invariant.split("&&");
+//					String effectValueStr=null;
+//					for(String invariant:invariants) {
+//						if(invariant.indexOf(attribute)>=0) {
+//							effectValueStr=invariant.substring(invariant.indexOf("==")).substring("==".length());
+//							break;
+//						}
+//					}
+//					Double effectValue=Double.parseDouble(effectValueStr);
+//					if(effectValue>0) {
+//						
+//						//actionToTrigger
+//						for(TemplTransition inTransition:state.inTransitions) {
+//							if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
+//								if(compareStr.equals(">")) {
+//									//正影响
+//									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"+\",fontsize=\"18\"]";
+//									parse.write(graphvizFile, actionToTriggerDot, true);
+//								}
+//								if(compareStr.equals("<")) {
+//									//负影响
+//									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"-\",fontsize=\"24\"]";
+//									parse.write(graphvizFile, actionToTriggerDot, true);
+//								}
+//								
+//								break;
+//							}
+//						}
+//					}
+//					if(effectValue<0) {
+//						
+//						for(TemplTransition inTransition:state.inTransitions) {
+//							if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
+//								if(compareStr.equals("<")) {
+//									//正影响
+//									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"+\",fontsize=\"18\"]";
+//									parse.write(graphvizFile, actionToTriggerDot, true);
+//								}
+//								if(compareStr.equals(">")) {
+//									//负影响
+//									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"-\",fontsize=\"24\"]";
+//									parse.write(graphvizFile, actionToTriggerDot, true);
+//								}
+//							}
+//						}
+//					}
+//					
+//				}
+//				if(state.invariant==null) {
+//					for(TemplTransition inTransition:state.inTransitions) {
+//						if(inTransition.assignment!=null && inTransition.assignment.indexOf(attribute)>=0) {
+//							String[] assignments=inTransition.assignment.split(",");
+//							for(String assignment:assignments) {
+//								if(assignment.indexOf(attribute)>=0&&assignment.indexOf("temp")<0) {
+//									String effectValueStr=assignment.substring(assignment.indexOf("=")).substring("=".length());
+//									Double effectValue=Double.parseDouble(effectValueStr);
+//									Double value=Double.parseDouble(valStr);
+//									if(compareStr.equals(">")) {
+//										if(effectValue>value) {
+//											//正影响
+//											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
+//												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//												parse.write(graphvizFile, actionToTriggerDot, true);
+//												break;
+//											}
+//										}
+//										if(effectValue<value) {
+//											//负影响
+//											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
+//												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"-\",fontsize=\"24\"]";
+//												parse.write(graphvizFile, actionToTriggerDot, true);
+//												break;
+//											}
+//										}
+//									}
+//									if(compareStr.equals("<")) {
+//										if(effectValue<value) {
+//											//正影响
+//											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
+//												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//												parse.write(graphvizFile, actionToTriggerDot, true);
+//												break;
+//											}
+//										}
+//										if(effectValue>value) {
+//											//负影响
+//											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
+//												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"-\",fontsize=\"24\"]";
+//												parse.write(graphvizFile, actionToTriggerDot, true);
+//												break;
+//											}
+//										}
+//									}
+//									
+//									break;
+//								}
+//							}
+//							
+//							break;
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+	
+//	/////////////////////////////////////////////////2020.12.19/////////////////////////////////////////
+//	public void getBiddableEffect(File graphvizFile,String trigger,String triggerNum,String attribute,String compareStr,List<TemplGraph> biddables,List<Rule> rules) throws IOException {
+//		GetTemplate parse=new GetTemplate();
+//		String valStr=null;
+//		Double value=Double.parseDouble(valStr);
+//		//valstr
+//		if(trigger.indexOf("=")>0) {
+//			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//		}else {
+//			valStr=trigger.substring(trigger.indexOf(compareStr)).substring(compareStr.length());
+//		}
+//		for(TemplGraph biddable:biddables) {
+//			for(TemplGraphNode state:biddable.templGraphNodes) {
+//				if(state.invariant!=null && state.invariant.indexOf(attribute)>=0) {
+//					String[] invariants=state.invariant.split("&&");
+//					String effectValueStr=null;
+//					for(String invariant:invariants) {
+//						invariant=invariant.trim();
+//						if(invariant.indexOf(attribute)>=0) {
+//							effectValueStr=invariant.substring(invariant.indexOf("==")).substring("==".length());
+//							break;
+//						}
+//						Double effectValue=Double.parseDouble(effectValueStr);
+//						if(effectValue>0) {
+//							
+//							//actionToTrigger
+//							for(TemplTransition inTransition:state.inTransitions) {
+//								if(inTransition.assignment!=null ) {
+//									/////////////////////////////////////////////////
+//									
+//									break;
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//		if(compareStr.equals(">")) {
+//			
+//		}
+//		if(compareStr.equals("<")) {
+//			
+//		}
+//	}
+	
+	public void getNewIFD(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
+//		GetTemplate parse=new GetTemplate();
 		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
 		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
 		List<TemplGraph> biddables=new ArrayList<TemplGraph>();
@@ -86,385 +545,224 @@ public class TGraphToDot {
 				}
 				if(templGraph.declaration.indexOf("sensor")>=0) {
 					sensors.add(templGraph);
-				}				
-			}
-			if(templGraph.declaration.indexOf("biddable")>=0) {
-				biddables.add(templGraph);
+				}
+				if(templGraph.declaration.indexOf("biddable")>=0 && templGraph.declaration.indexOf("sensor")<0) {
+					biddables.add(templGraph);
+				}
 			}
 		}
+		
 		//-------------------写dot文件-----------------------------------
 		
-		File graphvizFile=new File(dotPath);
-		if(!graphvizFile.exists()) {
-			try {
-				graphvizFile.createNewFile();
-			} catch(IOException e) {
-				e.printStackTrace();
-			}
-		}
-		parse.write(graphvizFile, "", false);
-		parse.write(graphvizFile, "digraph infoflow{", true);
-		parse.write(graphvizFile, "rankdir=LR;", true);
-		parse.write(graphvizFile,  "", true);
+
+		StringBuilder sb=new StringBuilder();
+
+		
+		sb.append("digraph infoflow{\r\n");
+		sb.append("rankdir=LR;\r\n");
+		sb.append("\r\n");
+
 		///////////////////sensor//////////////////
-		parse.write(graphvizFile, "///////////////sensors////////////////", true);
+		sb.append("///////////////sensors////////////////\r\n");
 		for(TemplGraph sensor:sensors) {
 			String sensorDot=sensor.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"azure3\"]";
-			parse.write(graphvizFile, sensorDot, true);
+			sb.append(sensorDot+"\r\n");
+
 		}
 		///////////////////////////////////////////////////
-		parse.write(graphvizFile, "", true);
+		sb.append("\r\n");
 		
 		//////////////controlled devices////////////////
-		parse.write(graphvizFile, "//////////////controlled devices//////////////", true);
+		sb.append("//////////////controlled devices//////////////\r\n");
+//		parse.write(graphvizFile, "//////////////controlled devices//////////////", true);		
 		for(TemplGraph controlledDevice:controlledDevices) {
-			//device
-			String deviceDot=controlledDevice.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"darkseagreen1\"]";
-			parse.write(graphvizFile, deviceDot, true);			
-			List<String> actionList=new ArrayList<String>();
-			for(TemplGraphNode state:controlledDevice.templGraphNodes) {
-				int flag=0;
-				for(TemplTransition outTransition:state.outTransitions) {
-					String synchronisation=outTransition.synchronisation;
-					if(synchronisation!=null && synchronisation.indexOf("?")>0) {
-						String action=synchronisation.substring(0, synchronisation.indexOf("?"));
-						for(String act:actionList) {
-							if(synchronisation.indexOf(act)>=0) {
-								flag=1;
-							}
-						}
-						if(flag==0) {
-							//action
-							String actionDot=action+"[shape=\"record\",style=\"filled\",fillcolor=\"beige\"]";
-							parse.write(graphvizFile, actionDot, true);
-							//actionToDevice
-							String actionToDeviceDot=action+"->"+controlledDevice.name+"[color=\"lemonchiffon3\"]";
-							parse.write(graphvizFile, actionToDeviceDot, true);
-							actionList.add(action);
-						}
-					}
-				}
-				
-			}
-			
-			
-			//actionToDevice
+			String controlledDot=controlledDevice.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"darkseagreen1\"]";
+			sb.append(controlledDot+"\r\n");
 		}
+		
 		//////////////////////////////////////////////////////
-		parse.write(graphvizFile, "", true);
-		parse.write(graphvizFile, "", true);
+		sb.append("\r\n");
+		sb.append("\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "", true);
 		
 		/////////////////////rules////////////////////
-		parse.write(graphvizFile, "////////////////////rules/////////////////////", true);
-		parse.write(graphvizFile, "", true);
+		sb.append("////////////////////rulesNum/////////////////////\r\n");
+		sb.append("\r\n");
+//		parse.write(graphvizFile, "////////////////////rulesNum/////////////////////", true);
+//		parse.write(graphvizFile, "", true);
 		for(Rule rule:rules) {
-			parse.write(graphvizFile, "///////////////////"+rule.getRuleName()+"////////////////////", true);
-			//ruleNum节点
 			String ruleDot=rule.getRuleName()+"[shape=\"hexagon\",style=\"filled\",fillcolor=\"lightskyblue\"]";
-			parse.write(graphvizFile, ruleDot, true);
-			//ruleToAction
-			for(String action:rule.getAction()) {
-				if(action.indexOf("for")>0) {
-					action=action.substring(0, action.indexOf("for")).trim();
+			sb.append(ruleDot+"\r\n");
+//			parse.write(graphvizFile, ruleDot, true);
+		}
+		//////////////////////////////////////////////////////
+		sb.append("\r\n");
+		sb.append("\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "", true);
+		
+		
+		//getTriggers,getActions
+		List<Trigger> triggers=getTriggers(rules);
+		List<Action> actions=getNewActions(rules,controlledDevices);
+		sb.append("\r\n");
+		sb.append("////////////////////actions/////////////////////\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "////////////////////actions/////////////////////", true);
+		//////////////////////////////////////////////////////
+		sb.append("\r\n");
+		sb.append("\r\n");
+		sb.append("////////////////////actions/////////////////////\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "////////////////////actions/////////////////////", true);
+		for(Action action:actions) {
+			//actionDot
+			String actionDot=action.action+"[label=\""+action.device+"."+action.action+"\",shape=\"record\",style=\"filled\",fillcolor=\"beige\"]";
+			sb.append(actionDot+"\r\n");
+//			parse.write(graphvizFile, actionDot, true);
+			for(Rule actRule:action.rules) {
+				//ruleToActionDot
+				String ruleToActionDot=actRule.getRuleName()+"->"+action.action;
+				sb.append(ruleToActionDot+"\r\n");
+//				parse.write(graphvizFile, ruleToActionDot, true);
+			}
+			//actionToDeviceDot
+			//2021/5/24 更改了action和device节点之间的关系
+			String actionToDevice=action.device+"->"+action.action+"[color=\"lemonchiffon3\"]";
+			sb.append(actionToDevice+"\r\n");
+//			parse.write(graphvizFile, actionToDevice, true);
+		}
+		sb.append("\r\n");
+		sb.append("////////////////////triggers/////////////////////\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "////////////////////triggers/////////////////////", true);
+		for(Trigger trigger:triggers) {
+			//triggerDot
+			String triggerDot=trigger.triggerNum+"[label=\""+trigger.trigger+"\",shape=\"oval\",style=\"filled\",fillcolor=\"lightpink\"]";
+			sb.append(triggerDot+"\r\n");
+//			parse.write(graphvizFile, triggerDot, true);
+			//triggerToRuleDot
+			for(Rule triRule:trigger.rules) {
+				String triggerToRuleDot=trigger.triggerNum+"->"+triRule.getRuleName();
+				sb.append(triggerToRuleDot+"\r\n");
+//				parse.write(graphvizFile, triggerToRuleDot, true);				
+			}
+			//sensorToTriggerDot
+			if(trigger.attrVal[1].equals(".")) {
+				//deviceToTriggerDot
+				String deviceToTriggerDot=trigger.attrVal[0]+"->"+trigger.triggerNum+"[color=\"lightpink\"]";
+				sb.append(deviceToTriggerDot+"\r\n");
+//				parse.write(graphvizFile, deviceToTriggerDot, true);
+			}else {
+				//deviceToTriggerDot
+				for(TemplGraph sensor:sensors) {
+					if(sensor.declaration!=null) {
+						if(sensor.declaration.indexOf(trigger.attrVal[0])>=0) {
+							String sensorToTriggerDot=sensor.name+"->"+trigger.triggerNum+"[color=\"lightpink\"]";
+							sb.append(sensorToTriggerDot+"\r\n");
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+							break;
+						}
+					}
 				}
-				String ruleToActionDot=rule.getRuleName()+"->"+action;
-				parse.write(graphvizFile, ruleToActionDot, true);
 			}
 			
-			//trigger
-			for(int i=0;i<rule.getTrigger().size();i++) {
-				String trigger=rule.getTrigger().get(i);
-				//trigger节点
-				String triggerNum=rule.getRuleName()+"trigger"+i;
-				String triggerDot=triggerNum+"[label=\""+rule.getTrigger()+"\",shape=\"oval\",style=\"filled\",fillcolor=\"lightpink\"]";
-				parse.write(graphvizFile, triggerDot, true);
-				//triggerToRule
-				String triggerToRuleDot=triggerNum+"->"+rule.getRuleName();
-				parse.write(graphvizFile, triggerToRuleDot, true);
-				//sensorToTrigger
-				//先找到trigger对应attribute
-				if(trigger.indexOf(">")>0) {
-					String attribute=null;
-					String valStr=null;
-					//attribute
-					if(trigger.indexOf(".")>0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf(">"));
-					}
-					//valstr
-					if(trigger.indexOf("=")>0) {
-						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-					}else {
-						valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
-					}
-					
-					//sensorToTrigger
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-							break;
-						}
-					}
-					
-					//其他设备状态对trigger的影响
-					
-					
-				}else if(trigger.indexOf("<")>0) {
-					String attribute=null;
-					String valStr=null;
-					//attribute
-					if(trigger.indexOf(".")>0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf("<"));
-					}
-					//valstr
-					if(trigger.indexOf("=")>0) {
-						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-					}else {
-						valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
-					}
-					
-					//sensorToTrigger
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-							break;
-						}
-					}
-					//其他设备状态对trigger的影响
-					
-					
-				}else if(trigger.indexOf("=")>0) {
-					String attribute=null;
-					//找到rule的trigger涉及的属性
-					if(trigger.indexOf(".")>=0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf("="));
-					}
-					//sensorToTrigger
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							String sensorToTriggerDot=sensor.name+"->"+triggerNum+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-							break;
-						}
-					}
-				}else {
-					//trigger为设备状态
-					String stateTrigger=trigger;
-					String device=stateTrigger.substring(0, stateTrigger.indexOf("."));
-					String state=stateTrigger.substring(stateTrigger.indexOf(".")).substring(".".length());
-					//deviceToTrigger
-					String deviceToTriggerDot=device+"->"+triggerNum+"[color=\"lightpink\"]";
-					parse.write(graphvizFile, deviceToTriggerDot, true);
-					//actionToTrigger, trigger为state
-					for(TemplGraph contrDevice:controlledDevices) {
-						if(device.equals(contrDevice.name)) {
-							for(TemplGraphNode sta:contrDevice.templGraphNodes) {
-								if(state.equals(sta.name)) {									
-									for(TemplTransition inTransition:sta.inTransitions) {										
-										if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
-											String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-											String actionToStateDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-											parse.write(graphvizFile, actionToStateDot, true);
-											break;
+			//trigger受到的影响
+			//triggerToTrigger   相同属性
+			if(trigger.attrVal[1].equals(".")) {
+				//deviceState
+				for(TemplGraph controlledDevice:controlledDevices) {
+					if(controlledDevice.name.equals(trigger.attrVal[0])) {
+						for(TemplGraphNode stateNode:controlledDevice.templGraphNodes) {
+							if(stateNode.name.equals(trigger.attrVal[2])) {
+								for(TemplTransition inTransition:stateNode.inTransitions) {
+									if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
+										//actionToTrigger
+										String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+										boolean hasAction=false;
+										for(Action act:actions) {
+											if(action.equals(act.action)) {
+												hasAction=true;
+												break;
+											}
 										}
-										
+										//得要在rule中有这个action才行
+										if(hasAction) {
+											String actionToTriggerDot=action+"->"+trigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+											sb.append(actionToTriggerDot+"\r\n");
+//											parse.write(graphvizFile, actionToTriggerDot, true);
+										}										
+										break;
 									}
-									break;
-									
 								}
-							}
-							break;
-						}
-					}
-				}
-				parse.write(graphvizFile, "", true);
-			}
-			parse.write(graphvizFile, "", true);
-		}
-		parse.write(graphvizFile, "", true);
-		parse.write(graphvizFile, "}", true);
-	}
-	////////////////////////////////////////////2020.12.22以前/////////////////////////////////
-	public void getDeviceEffect(File graphvizFile,String trigger,String triggerNum,String attribute,String compareStr,List<TemplGraph> controlledDevices) throws IOException {
-		GetTemplate parse=new GetTemplate();
-		String valStr=null;
-		//valstr
-		if(trigger.indexOf("=")>0) {
-			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-		}else {
-			valStr=trigger.substring(trigger.indexOf(compareStr)).substring(compareStr.length());
-		}
-		////////////////////effect//////////////////////
-		//对该trigger有正影响的device的action
-		for(TemplGraph device:controlledDevices) {
-			for(TemplGraphNode state:device.templGraphNodes) {
-				if(state.invariant!=null && state.invariant.indexOf(attribute)>0) {
-					String[] invariants=state.invariant.split("&&");
-					String effectValueStr=null;
-					for(String invariant:invariants) {
-						if(invariant.indexOf(attribute)>=0) {
-							effectValueStr=invariant.substring(invariant.indexOf("==")).substring("==".length());
-							break;
-						}
-					}
-					Double effectValue=Double.parseDouble(effectValueStr);
-					if(effectValue>0) {
-						
-						//actionToTrigger
-						for(TemplTransition inTransition:state.inTransitions) {
-							if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
-								if(compareStr.equals(">")) {
-									//正影响
-									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"+\",fontsize=\"18\"]";
-									parse.write(graphvizFile, actionToTriggerDot, true);
-								}
-								if(compareStr.equals("<")) {
-									//负影响
-									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"-\",fontsize=\"24\"]";
-									parse.write(graphvizFile, actionToTriggerDot, true);
-								}
-								
 								break;
 							}
 						}
-					}
-					if(effectValue<0) {
-						
-						for(TemplTransition inTransition:state.inTransitions) {
-							if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
-								if(compareStr.equals("<")) {
-									//正影响
-									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"+\",fontsize=\"18\"]";
-									parse.write(graphvizFile, actionToTriggerDot, true);
-								}
-								if(compareStr.equals(">")) {
-									//负影响
-									String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-									String actionToTriggerDot=action+"->"+triggerNum+"[style=\"dashed\",color=\"red\",label=\"-\",fontsize=\"24\"]";
-									parse.write(graphvizFile, actionToTriggerDot, true);
-								}
-							}
-						}
-					}
-					
+						break;
+					}					
 				}
-				if(state.invariant==null) {
-					for(TemplTransition inTransition:state.inTransitions) {
-						if(inTransition.assignment!=null && inTransition.assignment.indexOf(attribute)>=0) {
-							String[] assignments=inTransition.assignment.split(",");
-							for(String assignment:assignments) {
-								if(assignment.indexOf(attribute)>=0&&assignment.indexOf("temp")<0) {
-									String effectValueStr=assignment.substring(assignment.indexOf("=")).substring("=".length());
-									Double effectValue=Double.parseDouble(effectValueStr);
-									Double value=Double.parseDouble(valStr);
-									if(compareStr.equals(">")) {
-										if(effectValue>value) {
-											//正影响
-											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
-												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-												parse.write(graphvizFile, actionToTriggerDot, true);
-												break;
-											}
-										}
-										if(effectValue<value) {
-											//负影响
-											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
-												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"-\",fontsize=\"24\"]";
-												parse.write(graphvizFile, actionToTriggerDot, true);
-												break;
-											}
-										}
+			}else {
+				for(Trigger otherTrigger:triggers) {
+					if(otherTrigger!=trigger && !otherTrigger.attrVal[1].equals(".") && otherTrigger.attrVal[0].equals(trigger.attrVal[0])) {
+						if(trigger.attrVal[1].equals(">")) {
+							if(otherTrigger.attrVal[1].equals(">")) {
+								//正影响
+								Double triVal=Double.parseDouble(trigger.attrVal[2]);
+								Double othTriVal=Double.parseDouble(otherTrigger.attrVal[2]);
+								if(triVal<othTriVal) {
+									//更改颜色为green2，同时删除“+”
+									String triggerToTriggerDot=otherTrigger.triggerNum+"->"+trigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+									sb.append(triggerToTriggerDot+"\r\n");
+//									parse.write(graphvizFile, triggerToTriggerDot, true);
+								}else if (trigger.attrVal[2].equals(otherTrigger.attrVal[2])) {
+									if(otherTrigger.trigger.indexOf(">=")>0) {
+										String triggerToTriggerDot=trigger.triggerNum+"->"+otherTrigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+										sb.append(triggerToTriggerDot+"\r\n");
+//										parse.write(graphvizFile, triggerToTriggerDot, true);
 									}
-									if(compareStr.equals("<")) {
-										if(effectValue<value) {
-											//正影响
-											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
-												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-												parse.write(graphvizFile, actionToTriggerDot, true);
-												break;
-											}
-										}
-										if(effectValue>value) {
-											//负影响
-											if(inTransition.synchronisation!=null&&inTransition.synchronisation.indexOf("?")>0) {
-												String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-												String actionToTriggerDot=action+"->"+triggerNum+"[color=\"red\",label=\"-\",fontsize=\"24\"]";
-												parse.write(graphvizFile, actionToTriggerDot, true);
-												break;
-											}
-										}
+								}
+							}
+
+						}else
+						if(trigger.attrVal[1].equals("<")) {
+
+							if(otherTrigger.attrVal[1].equals("<")) {
+								Double triVal=Double.parseDouble(trigger.attrVal[2]);
+								Double othTriVal=Double.parseDouble(otherTrigger.attrVal[2]);
+								if(triVal>othTriVal) {
+									String triggerToTriggerDot=otherTrigger.triggerNum+"->"+trigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+									sb.append(triggerToTriggerDot+"\r\n");
+//									parse.write(graphvizFile, triggerToTriggerDot, true);
+								}else if(trigger.attrVal[2].equals(otherTrigger.attrVal[2])) {
+									if(otherTrigger.trigger.indexOf("<=")>0) {
+										String triggerToTriggerDot=trigger.triggerNum+"->"+otherTrigger.triggerNum+"[color=\"red\",fontsize=\"18\"]";
+										sb.append(triggerToTriggerDot+"\r\n");
+//										parse.write(graphvizFile, triggerToTriggerDot, true);
 									}
-									
-									break;
-								}
-							}
-							
-							break;
-						}
-					}
-				}
-			}
-		}
-	}
-	/////////////////////////////////////////////////2020.12.19/////////////////////////////////////////
-	public void getBiddableEffect(File graphvizFile,String trigger,String triggerNum,String attribute,String compareStr,List<TemplGraph> biddables,List<Rule> rules) throws IOException {
-		GetTemplate parse=new GetTemplate();
-		String valStr=null;
-		Double value=Double.parseDouble(valStr);
-		//valstr
-		if(trigger.indexOf("=")>0) {
-			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-		}else {
-			valStr=trigger.substring(trigger.indexOf(compareStr)).substring(compareStr.length());
-		}
-		for(TemplGraph biddable:biddables) {
-			for(TemplGraphNode state:biddable.templGraphNodes) {
-				if(state.invariant!=null && state.invariant.indexOf(attribute)>=0) {
-					String[] invariants=state.invariant.split("&&");
-					String effectValueStr=null;
-					for(String invariant:invariants) {
-						invariant=invariant.trim();
-						if(invariant.indexOf(attribute)>=0) {
-							effectValueStr=invariant.substring(invariant.indexOf("==")).substring("==".length());
-							break;
-						}
-						Double effectValue=Double.parseDouble(effectValueStr);
-						if(effectValue>0) {
-							
-							//actionToTrigger
-							for(TemplTransition inTransition:state.inTransitions) {
-								if(inTransition.assignment!=null ) {
-									/////////////////////////////////////////////////
-									
-									break;
 								}
 							}
 						}
 					}
 				}
+				//biddableToTrigger
 			}
-		}
-		if(compareStr.equals(">")) {
+			
+			
 			
 		}
-		if(compareStr.equals("<")) {
-			
-		}
+		
+		
+		/////////////////////////////////////////////
+		sb.append("\r\n");
+		sb.append("}\r\n");
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "}", true);
+		BufferedWriter bw=new BufferedWriter(new FileWriter(dotPath));
+		bw.write(sb.toString());
+		bw.close();
 	}
-	
 	
 	////////////////////////////////////////////////2020.12.20（新）/////////////////////////////////////////////////////////
 	public void getBiddableEffect(File graphvizFile,Trigger trigger,List<Trigger> triggers,List<TemplGraph> biddables) throws IOException {
@@ -725,88 +1023,119 @@ public class TGraphToDot {
 		}
 		return attrVal;
 	}
-	///////////////////////////////////////////2020.12.27///////////////////////
-	//更改一下trigger，好像没太大必要
-	public String[] getAttributeValue(String trigger) {
-		String[] attrVal=new String[3];
-		if(trigger.indexOf("FOR")>0) {
-			trigger=trigger.substring(0, trigger.indexOf("FOR"));
+	
+//	///////////////////////////////////////////2020.12.27///////////////////////
+//	//更改一下trigger，好像没太大必要
+//	public String[] getAttributeValue(String trigger) {
+//		String[] attrVal=new String[3];
+//		if(trigger.indexOf("FOR")>0) {
+//			trigger=trigger.substring(0, trigger.indexOf("FOR"));
+//		}
+//		trigger=trigger.trim();
+//		if(trigger.indexOf(">=")>0) {
+//			String attribute=null;
+//			String valStr=null;
+//			if(trigger.indexOf(".")>=0) {
+//				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
+//			}else {
+//				attribute=trigger.substring(0, trigger.indexOf(">"));
+//			}
+//			//找到阈值
+//			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//			attrVal[0]=attribute.trim();
+//			attrVal[1]=">=";
+//			attrVal[2]=valStr.trim();
+//		}else if(trigger.indexOf(">")>=0) {
+//			String attribute=null;
+//			String valStr=null;
+//			if(trigger.indexOf(".")>=0) {
+//				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
+//			}else {
+//				attribute=trigger.substring(0, trigger.indexOf(">"));
+//			}
+//			//找到阈值
+//			valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
+//			attrVal[0]=attribute.trim();
+//			attrVal[1]=">";
+//			attrVal[2]=valStr.trim();
+//		}else if(trigger.indexOf("<=")>=0) {
+//			String attribute=null;
+//			String valStr=null;
+//			if(trigger.indexOf(".")>=0) {
+//				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
+//			}else {
+//				attribute=trigger.substring(0, trigger.indexOf("<"));
+//			}
+//			//找到阈值
+//			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//			attrVal[0]=attribute.trim();
+//			attrVal[1]="<=";
+//			attrVal[2]=valStr.trim();
+//		}else if(trigger.indexOf("<")>=0) {
+//			String attribute=null;
+//			String valStr=null;
+//			if(trigger.indexOf(".")>=0) {
+//				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
+//			}else {
+//				attribute=trigger.substring(0, trigger.indexOf("<"));
+//			}
+//			//找到阈值
+//			valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
+//			attrVal[0]=attribute.trim();
+//			attrVal[1]="<";
+//			attrVal[2]=valStr.trim();
+//		}else if(trigger.indexOf("=")>=0) {
+//			String attribute=null;
+//			String valStr=null;
+//			if(trigger.indexOf(".")>=0) {
+//				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
+//			}else {
+//				attribute=trigger.substring(0, trigger.indexOf("="));
+//			}
+//			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//			attrVal[0]=attribute.trim();
+//			attrVal[1]="=";
+//			attrVal[2]=valStr.trim();
+//		}else {
+//			String device=null;
+//			String state=null;
+//			device=trigger.substring(0, trigger.indexOf("."));
+//			state=trigger.substring(trigger.indexOf(".")).substring(".".length());
+//			attrVal[0]=device.trim();
+//			attrVal[1]=".";
+//			attrVal[2]=state.trim();
+//		}
+//		return attrVal;
+//	}
+	
+	public List<Action> getNewActions(List<Rule> rules,List<TemplGraph> templGraphs){
+		List<Action> actions=new ArrayList<Action>();
+		for(Rule rule:rules) {
+			for(String actionStr:rule.getAction()) {
+				actionStr=actionStr.trim();
+				if(actionStr.indexOf("for")>0) {
+					actionStr=actionStr.substring(0, actionStr.indexOf("for")).trim();					
+				}
+				int flag=0;
+				for(Action action:actions) {
+					if(actionStr.equals(action.action)) {
+						flag=1;
+						action.rules.add(rule);
+						break;
+					}
+				}
+				if(flag==0) {
+					Action action=new Action();
+					action.action=actionStr.substring(actionStr.indexOf(".")).substring(1).trim();
+					action.rules.add(rule);
+//					System.out.println("ruleName");
+//					System.out.println(rule.getRuleName());
+					action=getAttrVal(templGraphs,action);
+					actions.add(action);
+				}
+			}
 		}
-		trigger=trigger.trim();
-		if(trigger.indexOf(">=")>0) {
-			String attribute=null;
-			String valStr=null;
-			if(trigger.indexOf(".")>=0) {
-				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
-			}else {
-				attribute=trigger.substring(0, trigger.indexOf(">"));
-			}
-			//找到阈值
-			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-			attrVal[0]=attribute.trim();
-			attrVal[1]=">=";
-			attrVal[2]=valStr.trim();
-		}else if(trigger.indexOf(">")>=0) {
-			String attribute=null;
-			String valStr=null;
-			if(trigger.indexOf(".")>=0) {
-				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
-			}else {
-				attribute=trigger.substring(0, trigger.indexOf(">"));
-			}
-			//找到阈值
-			valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
-			attrVal[0]=attribute.trim();
-			attrVal[1]=">";
-			attrVal[2]=valStr.trim();
-		}else if(trigger.indexOf("<=")>=0) {
-			String attribute=null;
-			String valStr=null;
-			if(trigger.indexOf(".")>=0) {
-				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
-			}else {
-				attribute=trigger.substring(0, trigger.indexOf("<"));
-			}
-			//找到阈值
-			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-			attrVal[0]=attribute.trim();
-			attrVal[1]="<=";
-			attrVal[2]=valStr.trim();
-		}else if(trigger.indexOf("<")>=0) {
-			String attribute=null;
-			String valStr=null;
-			if(trigger.indexOf(".")>=0) {
-				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
-			}else {
-				attribute=trigger.substring(0, trigger.indexOf("<"));
-			}
-			//找到阈值
-			valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
-			attrVal[0]=attribute.trim();
-			attrVal[1]="<";
-			attrVal[2]=valStr.trim();
-		}else if(trigger.indexOf("=")>=0) {
-			String attribute=null;
-			String valStr=null;
-			if(trigger.indexOf(".")>=0) {
-				attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
-			}else {
-				attribute=trigger.substring(0, trigger.indexOf("="));
-			}
-			valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-			attrVal[0]=attribute.trim();
-			attrVal[1]="=";
-			attrVal[2]=valStr.trim();
-		}else {
-			String device=null;
-			String state=null;
-			device=trigger.substring(0, trigger.indexOf("."));
-			state=trigger.substring(trigger.indexOf(".")).substring(".".length());
-			attrVal[0]=device.trim();
-			attrVal[1]=".";
-			attrVal[2]=state.trim();
-		}
-		return attrVal;
+		return actions;
 	}
 	
 	///////////////////////////////////2020.12.20////////////////////////////////////
@@ -1019,7 +1348,7 @@ public class TGraphToDot {
 		parse.write(graphvizFile, "", true);
 		
 		
-		//getTriggers
+		//getTriggers,getActions
 		List<Trigger> triggers=getTriggers(rules);
 		List<Action> actions=getActions(rules,controlledDevices);
 		parse.write(graphvizFile, "", true);
@@ -1424,275 +1753,275 @@ public class TGraphToDot {
 		
 	}
 	
-	public void getDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
-		GetTemplate parse=new GetTemplate();
-		TGraphToDot tDot = new TGraphToDot();
-		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
-		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
-		TemplGraph rain=new TemplGraph();
-		for(TemplGraph templGraph:templGraphs) {
-			if(templGraph.declaration!=null) {
-				if(templGraph.declaration.indexOf("controlled_device")>=0) {
-					controlledDevices.add(templGraph);
-				}
-				if(templGraph.declaration.indexOf("sensor")>=0) {
-					sensors.add(templGraph);
-				}				
-			}
-			if(templGraph.name.equals("RainInstance0")) {
-				rain=templGraph;
-			}
-		}
-		//-------------------写dot文件-----------------------------------
-		
-		File graphvizFile=new File(dotPath);
-		if(!graphvizFile.exists()) {
-			try {
-				graphvizFile.createNewFile();
-			} catch(IOException e) {
-				e.printStackTrace();
-			}
-		}
-		parse.write(graphvizFile, "", false);
-		parse.write(graphvizFile, "digraph infoflow{", true);
-		parse.write(graphvizFile, "rankdir=LR;", true);
-		parse.write(graphvizFile,  "", true);
-		///////////////////sensor//////////////////
-		parse.write(graphvizFile, "///////////////sensors////////////////", true);
-		for(TemplGraph sensor:sensors) {
-			String sensorDot=sensor.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"azure3\"]";
-			parse.write(graphvizFile, sensorDot, true);
-		}
-		///////////////////////////////////////////////////
-		parse.write(graphvizFile, "", true);
-		
-		//////////////controlled devices////////////////
-		parse.write(graphvizFile, "//////////////controlled devices//////////////", true);
-		for(TemplGraph controlledDevice:controlledDevices) {
-			//device
-			String deviceDot=controlledDevice.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"darkseagreen1\"]";
-			parse.write(graphvizFile, deviceDot, true);			
-			List<String> actionList=new ArrayList<String>();
-			for(TemplGraphNode state:controlledDevice.templGraphNodes) {
-				int flag=0;
-				for(TemplTransition outTransition:state.outTransitions) {
-					String synchronisation=outTransition.synchronisation;
-					if(synchronisation!=null && synchronisation.indexOf("?")>0) {
-						String action=synchronisation.substring(0, synchronisation.indexOf("?"));
-						for(String act:actionList) {
-							if(synchronisation.indexOf(act)>=0) {
-								flag=1;
-							}
-						}
-						if(flag==0) {
-							//action
-							String actionDot=action+"[shape=\"record\",style=\"filled\",fillcolor=\"beige\"]";
-							parse.write(graphvizFile, actionDot, true);
-							//actionToDevice
-							String actionToDeviceDot=action+"->"+controlledDevice.name+"[color=\"lemonchiffon3\"]";
-							parse.write(graphvizFile, actionToDeviceDot, true);
-							actionList.add(action);
-						}
-					}
-				}
-				
-			}
-			
-			
-			//actionToDevice
-		}
-		//////////////////////////////////////////////////////
-		parse.write(graphvizFile, "", true);
-		parse.write(graphvizFile, "", true);
-		
-		/////////////////////rules////////////////////
-		parse.write(graphvizFile, "////////////////////rules/////////////////////", true);
-		parse.write(graphvizFile, "", true);
-		for(Rule rule:rules) {
-			parse.write(graphvizFile, "///////////////////"+rule.getRuleName()+"////////////////////", true);
-			//ruleNum节点
-			String ruleDot=rule.getRuleName()+"[shape=\"hexagon\",style=\"filled\",fillcolor=\"lightskyblue\"]";
-			parse.write(graphvizFile, ruleDot, true);
-			//trigger节点
-			String triggerDot=rule.getRuleName()+"trigger"+"[label=\""+rule.getTrigger()+"\",shape=\"oval\",style=\"filled\",fillcolor=\"lightpink\"]";
-			parse.write(graphvizFile, triggerDot, true);
-			//triggerToRule
-			String triggerToRuleDot=rule.getRuleName()+"trigger->"+rule.getRuleName();
-			parse.write(graphvizFile, triggerToRuleDot, true);
-			//ruleToAction
-			for(String action:rule.getAction()) {
-				if(action.indexOf("for")>0) {
-					action=action.substring(0, action.indexOf("for")).trim();
-				}
-				String ruleToActionDot=rule.getRuleName()+"->"+action;
-				parse.write(graphvizFile, ruleToActionDot, true);	
-				
-			}
-			
-			//sensorToTrigger or deviceToTrigger
-			for(String trigger:rule.getTrigger()) {
-				if(trigger.indexOf(">")>0) {
-					
-					String attribute=null;
-					String valStr=null;
-					//找到rule的trigger涉及的属性
-					if(trigger.indexOf(".")>=0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf(">"));
-					}
-					//找到阈值
-					if(trigger.indexOf("=")>0) {
-						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-						
-					}
-					if(trigger.indexOf("=")<0) {
-						valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
-					}
-					//寻找检测该属性的sensor
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							//sensorToTrigger
-							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-						}
-					}
-					//寻找设备引起的可能的影响
-					tDot.getDeviceEffect(graphvizFile,attribute,valStr,  ">", sensors, controlledDevices, rule);
-					//rain的影响
-					tDot.getRainEffect(rain, rules, rule, attribute, valStr, ">", graphvizFile);
-					//其他trigger的正影响
-					for(Rule ru:rules) {
-						if(ru.getTriggers().indexOf(attribute)>=0) {
-							for(String tri:ru.getTrigger()) {
-								if(tri.indexOf(attribute)>=0 && tri.indexOf(">")>0) {
-									
-									String vStr=null;
-									if(tri.indexOf("=")>0) {
-										vStr=tri.substring(tri.indexOf("=")).substring("=".length());
-									}
-									if(tri.indexOf("=")<0) {
-										vStr=tri.substring(tri.indexOf(">")).substring(">".length());
-									}
-									if(Double.parseDouble(vStr)>Double.parseDouble(valStr)) {
-										//triggerToTrigger
-										String triggerToTriggerDot=ru.getRuleName()+"trigger->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-										parse.write(graphvizFile, triggerToTriggerDot, true);
-									}
-								}
-							}
-						}
-					}
-				}else if(trigger.indexOf("<")>0) {
-					String attribute=null;
-					String valStr=null;
-					//找到rule的trigger涉及的属性
-					if(trigger.indexOf(".")>=0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf("<"));
-					}
-					//找到阈值
-					if(trigger.indexOf("=")>0) {
-						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
-						
-					}
-					if(trigger.indexOf("=")<0) {
-						valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
-					}
-					//寻找检测该属性的sensor
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							//sensorToTrigger
-							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-							break;
-						}
-					}
-					//寻找设备引起的可能的正影响
-					tDot.getDeviceEffect(graphvizFile, attribute,valStr, "<", sensors, controlledDevices, rule);
-					//rain的影响
-					tDot.getRainEffect(rain, rules, rule, attribute, valStr, "<", graphvizFile);
-					//其他trigger的正影响
-					for(Rule ru:rules) {
-						if(ru.getTriggers().indexOf(attribute)>=0) {
-							for(String tri:ru.getTrigger()) {
-								if(tri.indexOf(attribute)>=0 && tri.indexOf("<")>0) {
-									
-									String vStr=null;
-									if(tri.indexOf("=")>0) {
-										vStr=tri.substring(tri.indexOf("=")).substring("=".length());
-									}
-									if(tri.indexOf("=")<0) {
-										vStr=tri.substring(tri.indexOf("<")).substring("<".length());
-									}
-									if(Double.parseDouble(vStr)<Double.parseDouble(valStr)) {
-										//triggerToTrigger
-										String triggerToTriggerDot=ru.getRuleName()+"trigger->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-										parse.write(graphvizFile, triggerToTriggerDot, true);
-									}
-								}
-							}
-						}
-					}
-				}else if(trigger.indexOf("=")>=0) {
-					String attribute=null;
-					//找到rule的trigger涉及的属性
-					if(trigger.indexOf(".")>=0) {
-						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
-					}else {
-						attribute=trigger.substring(0, trigger.indexOf("="));
-					}
-					//寻找检测该属性的sensor
-					for(TemplGraph sensor:sensors) {
-						if(sensor.declaration.indexOf(attribute)>=0) {
-							//sensorToTrigger
-							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
-							parse.write(graphvizFile, sensorToTriggerDot, true);
-						}
-					}
-				}else {
-					//trigger为设备状态
-					String stateTrigger=trigger;
-					String device=stateTrigger.substring(0, stateTrigger.indexOf("."));
-					String state=stateTrigger.substring(stateTrigger.indexOf(".")).substring(".".length());
-					//deviceToTrigger
-					String deviceToTriggerDot=device+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
-					parse.write(graphvizFile, deviceToTriggerDot, true);
-					//actionToTrigger, trigger为state
-					for(TemplGraph contrDevice:controlledDevices) {
-						if(device.equals(contrDevice.name)) {
-							for(TemplGraphNode sta:contrDevice.templGraphNodes) {
-								if(state.equals(sta.name)) {									
-									for(TemplTransition inTransition:sta.inTransitions) {										
-										if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
-											String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
-											String actionToStateDot=action+"->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
-											parse.write(graphvizFile, actionToStateDot, true);
-											break;
-										}
-										
-									}
-									break;
-									
-								}
-							}
-							break;
-						}
-					}
-				}
-			}
-			parse.write(graphvizFile, "", true);
-			
-			
-		}
-		
-		
-	/////////////////////////////////////////////
-			
-	parse.write(graphvizFile, "", true);
-	parse.write(graphvizFile, "}", true);
-	}
+//	public void getDot(List<TemplGraph> templGraphs,List<Rule> rules,String dotPath) throws IOException {
+//		GetTemplate parse=new GetTemplate();
+//		TGraphToDot tDot = new TGraphToDot();
+//		List<TemplGraph> controlledDevices=new ArrayList<TemplGraph>();
+//		List<TemplGraph> sensors=new ArrayList<TemplGraph>();
+//		TemplGraph rain=new TemplGraph();
+//		for(TemplGraph templGraph:templGraphs) {
+//			if(templGraph.declaration!=null) {
+//				if(templGraph.declaration.indexOf("controlled_device")>=0) {
+//					controlledDevices.add(templGraph);
+//				}
+//				if(templGraph.declaration.indexOf("sensor")>=0) {
+//					sensors.add(templGraph);
+//				}				
+//			}
+//			if(templGraph.name.equals("RainInstance0")) {
+//				rain=templGraph;
+//			}
+//		}
+//		//-------------------写dot文件-----------------------------------
+//		
+//		File graphvizFile=new File(dotPath);
+//		if(!graphvizFile.exists()) {
+//			try {
+//				graphvizFile.createNewFile();
+//			} catch(IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		parse.write(graphvizFile, "", false);
+//		parse.write(graphvizFile, "digraph infoflow{", true);
+//		parse.write(graphvizFile, "rankdir=LR;", true);
+//		parse.write(graphvizFile,  "", true);
+//		///////////////////sensor//////////////////
+//		parse.write(graphvizFile, "///////////////sensors////////////////", true);
+//		for(TemplGraph sensor:sensors) {
+//			String sensorDot=sensor.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"azure3\"]";
+//			parse.write(graphvizFile, sensorDot, true);
+//		}
+//		///////////////////////////////////////////////////
+//		parse.write(graphvizFile, "", true);
+//		
+//		//////////////controlled devices////////////////
+//		parse.write(graphvizFile, "//////////////controlled devices//////////////", true);
+//		for(TemplGraph controlledDevice:controlledDevices) {
+//			//device
+//			String deviceDot=controlledDevice.name+"[shape=\"doubleoctagon\",style=\"filled\",fillcolor=\"darkseagreen1\"]";
+//			parse.write(graphvizFile, deviceDot, true);			
+//			List<String> actionList=new ArrayList<String>();
+//			for(TemplGraphNode state:controlledDevice.templGraphNodes) {
+//				int flag=0;
+//				for(TemplTransition outTransition:state.outTransitions) {
+//					String synchronisation=outTransition.synchronisation;
+//					if(synchronisation!=null && synchronisation.indexOf("?")>0) {
+//						String action=synchronisation.substring(0, synchronisation.indexOf("?"));
+//						for(String act:actionList) {
+//							if(synchronisation.indexOf(act)>=0) {
+//								flag=1;
+//							}
+//						}
+//						if(flag==0) {
+//							//action
+//							String actionDot=action+"[shape=\"record\",style=\"filled\",fillcolor=\"beige\"]";
+//							parse.write(graphvizFile, actionDot, true);
+//							//actionToDevice
+//							String actionToDeviceDot=action+"->"+controlledDevice.name+"[color=\"lemonchiffon3\"]";
+//							parse.write(graphvizFile, actionToDeviceDot, true);
+//							actionList.add(action);
+//						}
+//					}
+//				}
+//				
+//			}
+//			
+//			
+//			//actionToDevice
+//		}
+//		//////////////////////////////////////////////////////
+//		parse.write(graphvizFile, "", true);
+//		parse.write(graphvizFile, "", true);
+//		
+//		/////////////////////rules////////////////////
+//		parse.write(graphvizFile, "////////////////////rules/////////////////////", true);
+//		parse.write(graphvizFile, "", true);
+//		for(Rule rule:rules) {
+//			parse.write(graphvizFile, "///////////////////"+rule.getRuleName()+"////////////////////", true);
+//			//ruleNum节点
+//			String ruleDot=rule.getRuleName()+"[shape=\"hexagon\",style=\"filled\",fillcolor=\"lightskyblue\"]";
+//			parse.write(graphvizFile, ruleDot, true);
+//			//trigger节点
+//			String triggerDot=rule.getRuleName()+"trigger"+"[label=\""+rule.getTrigger()+"\",shape=\"oval\",style=\"filled\",fillcolor=\"lightpink\"]";
+//			parse.write(graphvizFile, triggerDot, true);
+//			//triggerToRule
+//			String triggerToRuleDot=rule.getRuleName()+"trigger->"+rule.getRuleName();
+//			parse.write(graphvizFile, triggerToRuleDot, true);
+//			//ruleToAction
+//			for(String action:rule.getAction()) {
+//				if(action.indexOf("for")>0) {
+//					action=action.substring(0, action.indexOf("for")).trim();
+//				}
+//				String ruleToActionDot=rule.getRuleName()+"->"+action;
+//				parse.write(graphvizFile, ruleToActionDot, true);	
+//				
+//			}
+//			
+//			//sensorToTrigger or deviceToTrigger
+//			for(String trigger:rule.getTrigger()) {
+//				if(trigger.indexOf(">")>0) {
+//					
+//					String attribute=null;
+//					String valStr=null;
+//					//找到rule的trigger涉及的属性
+//					if(trigger.indexOf(".")>=0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf(">")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf(">"));
+//					}
+//					//找到阈值
+//					if(trigger.indexOf("=")>0) {
+//						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//						
+//					}
+//					if(trigger.indexOf("=")<0) {
+//						valStr=trigger.substring(trigger.indexOf(">")).substring(">".length());
+//					}
+//					//寻找检测该属性的sensor
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							//sensorToTrigger
+//							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//						}
+//					}
+//					//寻找设备引起的可能的影响
+//					tDot.getDeviceEffect(graphvizFile,attribute,valStr,  ">", sensors, controlledDevices, rule);
+//					//rain的影响
+//					tDot.getRainEffect(rain, rules, rule, attribute, valStr, ">", graphvizFile);
+//					//其他trigger的正影响
+//					for(Rule ru:rules) {
+//						if(ru.getTriggers().indexOf(attribute)>=0) {
+//							for(String tri:ru.getTrigger()) {
+//								if(tri.indexOf(attribute)>=0 && tri.indexOf(">")>0) {
+//									
+//									String vStr=null;
+//									if(tri.indexOf("=")>0) {
+//										vStr=tri.substring(tri.indexOf("=")).substring("=".length());
+//									}
+//									if(tri.indexOf("=")<0) {
+//										vStr=tri.substring(tri.indexOf(">")).substring(">".length());
+//									}
+//									if(Double.parseDouble(vStr)>Double.parseDouble(valStr)) {
+//										//triggerToTrigger
+//										String triggerToTriggerDot=ru.getRuleName()+"trigger->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//										parse.write(graphvizFile, triggerToTriggerDot, true);
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}else if(trigger.indexOf("<")>0) {
+//					String attribute=null;
+//					String valStr=null;
+//					//找到rule的trigger涉及的属性
+//					if(trigger.indexOf(".")>=0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("<")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf("<"));
+//					}
+//					//找到阈值
+//					if(trigger.indexOf("=")>0) {
+//						valStr=trigger.substring(trigger.indexOf("=")).substring("=".length());
+//						
+//					}
+//					if(trigger.indexOf("=")<0) {
+//						valStr=trigger.substring(trigger.indexOf("<")).substring("<".length());
+//					}
+//					//寻找检测该属性的sensor
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							//sensorToTrigger
+//							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//							break;
+//						}
+//					}
+//					//寻找设备引起的可能的正影响
+//					tDot.getDeviceEffect(graphvizFile, attribute,valStr, "<", sensors, controlledDevices, rule);
+//					//rain的影响
+//					tDot.getRainEffect(rain, rules, rule, attribute, valStr, "<", graphvizFile);
+//					//其他trigger的正影响
+//					for(Rule ru:rules) {
+//						if(ru.getTriggers().indexOf(attribute)>=0) {
+//							for(String tri:ru.getTrigger()) {
+//								if(tri.indexOf(attribute)>=0 && tri.indexOf("<")>0) {
+//									
+//									String vStr=null;
+//									if(tri.indexOf("=")>0) {
+//										vStr=tri.substring(tri.indexOf("=")).substring("=".length());
+//									}
+//									if(tri.indexOf("=")<0) {
+//										vStr=tri.substring(tri.indexOf("<")).substring("<".length());
+//									}
+//									if(Double.parseDouble(vStr)<Double.parseDouble(valStr)) {
+//										//triggerToTrigger
+//										String triggerToTriggerDot=ru.getRuleName()+"trigger->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//										parse.write(graphvizFile, triggerToTriggerDot, true);
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}else if(trigger.indexOf("=")>=0) {
+//					String attribute=null;
+//					//找到rule的trigger涉及的属性
+//					if(trigger.indexOf(".")>=0) {
+//						attribute=trigger.substring(trigger.indexOf("."), trigger.indexOf("=")).substring(".".length());
+//					}else {
+//						attribute=trigger.substring(0, trigger.indexOf("="));
+//					}
+//					//寻找检测该属性的sensor
+//					for(TemplGraph sensor:sensors) {
+//						if(sensor.declaration.indexOf(attribute)>=0) {
+//							//sensorToTrigger
+//							String sensorToTriggerDot=sensor.name+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
+//							parse.write(graphvizFile, sensorToTriggerDot, true);
+//						}
+//					}
+//				}else {
+//					//trigger为设备状态
+//					String stateTrigger=trigger;
+//					String device=stateTrigger.substring(0, stateTrigger.indexOf("."));
+//					String state=stateTrigger.substring(stateTrigger.indexOf(".")).substring(".".length());
+//					//deviceToTrigger
+//					String deviceToTriggerDot=device+"->"+rule.getRuleName()+"trigger"+"[color=\"lightpink\"]";
+//					parse.write(graphvizFile, deviceToTriggerDot, true);
+//					//actionToTrigger, trigger为state
+//					for(TemplGraph contrDevice:controlledDevices) {
+//						if(device.equals(contrDevice.name)) {
+//							for(TemplGraphNode sta:contrDevice.templGraphNodes) {
+//								if(state.equals(sta.name)) {									
+//									for(TemplTransition inTransition:sta.inTransitions) {										
+//										if(inTransition.synchronisation!=null && inTransition.synchronisation.indexOf("?")>0) {
+//											String action=inTransition.synchronisation.substring(0, inTransition.synchronisation.indexOf("?"));
+//											String actionToStateDot=action+"->"+rule.getRuleName()+"trigger"+"[color=\"red\",label=\"+\",fontsize=\"18\"]";
+//											parse.write(graphvizFile, actionToStateDot, true);
+//											break;
+//										}
+//										
+//									}
+//									break;
+//									
+//								}
+//							}
+//							break;
+//						}
+//					}
+//				}
+//			}
+//			parse.write(graphvizFile, "", true);
+//			
+//			
+//		}
+//		
+//		
+//	/////////////////////////////////////////////
+//			
+//	parse.write(graphvizFile, "", true);
+//	parse.write(graphvizFile, "}", true);
+//	}
 	
 	public String[] getParameters(String parameter) {
 		String[] parameters=parameter.split(",");
@@ -2063,174 +2392,174 @@ public class TGraphToDot {
 
 	}
 	//templates list
-	public void getInstance(String instanceStr,List<TemplGraph> templGraphs) {
-		for(TemplGraph templGraph:templGraphs) {
-			if(instanceStr.indexOf(templGraph.name)>=0) {
-				String valueStr=instanceStr.substring(instanceStr.indexOf("("), instanceStr.indexOf(")")).substring("(".length());
-				//对应参数值
-				String[] values=valueStr.split(",");
-				String[] parameters=getParameters(templGraph.parameter);
-				for(int i=0;i<parameters.length;i++) {
-					//将参数替换成值
-					for(TemplGraphNode state:templGraph.templGraphNodes) {
-						for(TemplTransition outTransition:state.outTransitions) {
-							if(outTransition.assignment!=null) {
-								String[] assignments=outTransition.assignment.split(",");
-								for(String assignment:assignments) {
-									if(assignment.indexOf("="+parameters[i])>=0) {
-										String[] para=assignment.split("=");
-										if(para[1].equals(parameters[i])) {
-											outTransition.assignment=outTransition.assignment.replace("="+parameters[i], "="+values[i]);
-											for(TemplTransition inTransition:outTransition.node.inTransitions) {
-												if(inTransition.node==state) {
-													inTransition.assignment=outTransition.assignment;
-												}
-											}
-										}
-									}
-								}
-								
-							}
-							if(outTransition.probability!=null) {
-								if(outTransition.probability.indexOf(parameters[i])>=0) {
-									outTransition.probability=outTransition.probability.replace(parameters[i], values[i]);
-									for(TemplTransition inTransition:outTransition.node.inTransitions) {
-										if(inTransition.node==state) {
-											inTransition.probability=outTransition.probability;
-										}
-									}
-								}
-							}
-							if(outTransition.guard!=null) {
-								String[] guards=outTransition.guard.split("&&");
-								for(String guard:guards) {
-									if(guard.indexOf("="+parameters[i])>=0) {
-										String[] para=guard.split("=");
-										if(para[1].equals(parameters[i])) {
-											outTransition.guard=outTransition.guard.replace(parameters[i], values[i]);
-											for(TemplTransition inTransition:outTransition.node.inTransitions) {
-												if(inTransition.node==state) {
-													inTransition.assignment=outTransition.assignment;
-												}
-											}
-										}
-									}
-								}
-								
-							}
-						}
-						if(state.invariant!=null) {
-							String[] invariants=state.invariant.split("&&");
-							for(String invariant:invariants) {
-								if(invariant.indexOf("="+parameters[i])>=0) {
-									if(invariant.indexOf("==")<0) {
-										String[] para=invariant.split("=");
-										if(para[1].equals(parameters[i])) {
-											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
-										}
-									}
-									if(invariant.indexOf("==")>0) {
-										String[] para=invariant.split("==");
-										if(para[1].equals(parameters[i])) {
-											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
-										}
-									}
-									
-								}
-							}
-							
-						}
-					}
-					
-				}
-				break;
-			}
-		}
-	}
+//	public void getInstance(String instanceStr,List<TemplGraph> templGraphs) {
+//		for(TemplGraph templGraph:templGraphs) {
+//			if(instanceStr.indexOf(templGraph.name)>=0) {
+//				String valueStr=instanceStr.substring(instanceStr.indexOf("("), instanceStr.indexOf(")")).substring("(".length());
+//				//对应参数值
+//				String[] values=valueStr.split(",");
+//				String[] parameters=getParameters(templGraph.parameter);
+//				for(int i=0;i<parameters.length;i++) {
+//					//将参数替换成值
+//					for(TemplGraphNode state:templGraph.templGraphNodes) {
+//						for(TemplTransition outTransition:state.outTransitions) {
+//							if(outTransition.assignment!=null) {
+//								String[] assignments=outTransition.assignment.split(",");
+//								for(String assignment:assignments) {
+//									if(assignment.indexOf("="+parameters[i])>=0) {
+//										String[] para=assignment.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											outTransition.assignment=outTransition.assignment.replace("="+parameters[i], "="+values[i]);
+//											for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//												if(inTransition.node==state) {
+//													inTransition.assignment=outTransition.assignment;
+//												}
+//											}
+//										}
+//									}
+//								}
+//								
+//							}
+//							if(outTransition.probability!=null) {
+//								if(outTransition.probability.indexOf(parameters[i])>=0) {
+//									outTransition.probability=outTransition.probability.replace(parameters[i], values[i]);
+//									for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//										if(inTransition.node==state) {
+//											inTransition.probability=outTransition.probability;
+//										}
+//									}
+//								}
+//							}
+//							if(outTransition.guard!=null) {
+//								String[] guards=outTransition.guard.split("&&");
+//								for(String guard:guards) {
+//									if(guard.indexOf("="+parameters[i])>=0) {
+//										String[] para=guard.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											outTransition.guard=outTransition.guard.replace(parameters[i], values[i]);
+//											for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//												if(inTransition.node==state) {
+//													inTransition.assignment=outTransition.assignment;
+//												}
+//											}
+//										}
+//									}
+//								}
+//								
+//							}
+//						}
+//						if(state.invariant!=null) {
+//							String[] invariants=state.invariant.split("&&");
+//							for(String invariant:invariants) {
+//								if(invariant.indexOf("="+parameters[i])>=0) {
+//									if(invariant.indexOf("==")<0) {
+//										String[] para=invariant.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
+//										}
+//									}
+//									if(invariant.indexOf("==")>0) {
+//										String[] para=invariant.split("==");
+//										if(para[1].equals(parameters[i])) {
+//											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
+//										}
+//									}
+//									
+//								}
+//							}
+//							
+//						}
+//					}
+//					
+//				}
+//				break;
+//			}
+//		}
+//	}
 	
 	//template
-	public void getInst(String instanceStr,TemplGraph templGraph) {
-		
-			if(instanceStr.indexOf(templGraph.name)>=0) {
-				String valueStr=instanceStr.substring(instanceStr.indexOf("("), instanceStr.indexOf(")")).substring("(".length());
-				//对应参数值
-				String[] values=valueStr.split(",");
-				String[] parameters=getParameters(templGraph.parameter);
-				for(int i=0;i<parameters.length;i++) {
-					//将参数替换成值
-					for(TemplGraphNode state:templGraph.templGraphNodes) {
-						for(TemplTransition outTransition:state.outTransitions) {
-							if(outTransition.assignment!=null) {
-								String[] assignments=outTransition.assignment.split(",");
-								for(String assignment:assignments) {
-									if(assignment.indexOf("="+parameters[i])>=0) {
-										String[] para=assignment.split("=");
-										if(para[1].equals(parameters[i])) {
-											outTransition.assignment=outTransition.assignment.replace("="+parameters[i], "="+values[i]);
-											for(TemplTransition inTransition:outTransition.node.inTransitions) {
-												if(inTransition.node==state) {
-													inTransition.assignment=outTransition.assignment;
-												}
-											}
-										}
-									}
-								}
-								
-							}
-							if(outTransition.probability!=null) {
-								if(outTransition.probability.indexOf(parameters[i])>=0) {
-									outTransition.probability=outTransition.probability.replace(parameters[i], values[i]);
-									for(TemplTransition inTransition:outTransition.node.inTransitions) {
-										if(inTransition.node==state) {
-											inTransition.probability=outTransition.probability;
-										}
-									}
-								}
-							}
-							if(outTransition.guard!=null) {
-								String[] guards=outTransition.guard.split("&&");
-								for(String guard:guards) {
-									if(guard.indexOf("="+parameters[i])>=0) {
-										String[] para=guard.split("=");
-										if(para[1].equals(parameters[i])) {
-											outTransition.guard=outTransition.guard.replace(parameters[i], values[i]);
-											for(TemplTransition inTransition:outTransition.node.inTransitions) {
-												if(inTransition.node==state) {
-													inTransition.assignment=outTransition.assignment;
-												}
-											}
-										}
-									}
-								}
-								
-							}
-						}
-						if(state.invariant!=null) {
-							String[] invariants=state.invariant.split("&&");
-							for(String invariant:invariants) {
-								if(invariant.indexOf("="+parameters[i])>=0) {
-									if(invariant.indexOf("==")<0) {
-										String[] para=invariant.split("=");
-										if(para[1].equals(parameters[i])) {
-											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
-										}
-									}
-									if(invariant.indexOf("==")>0) {
-										String[] para=invariant.split("==");
-										if(para[1].equals(parameters[i])) {
-											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
-										}
-									}
-									
-								}
-							}
-							
-						}
-					}
-					
-				}
-				
-			
-		}
-	}
+//	public void getInst(String instanceStr,TemplGraph templGraph) {
+//		
+//			if(instanceStr.indexOf(templGraph.name)>=0) {
+//				String valueStr=instanceStr.substring(instanceStr.indexOf("("), instanceStr.indexOf(")")).substring("(".length());
+//				//对应参数值
+//				String[] values=valueStr.split(",");
+//				String[] parameters=getParameters(templGraph.parameter);
+//				for(int i=0;i<parameters.length;i++) {
+//					//将参数替换成值
+//					for(TemplGraphNode state:templGraph.templGraphNodes) {
+//						for(TemplTransition outTransition:state.outTransitions) {
+//							if(outTransition.assignment!=null) {
+//								String[] assignments=outTransition.assignment.split(",");
+//								for(String assignment:assignments) {
+//									if(assignment.indexOf("="+parameters[i])>=0) {
+//										String[] para=assignment.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											outTransition.assignment=outTransition.assignment.replace("="+parameters[i], "="+values[i]);
+//											for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//												if(inTransition.node==state) {
+//													inTransition.assignment=outTransition.assignment;
+//												}
+//											}
+//										}
+//									}
+//								}
+//								
+//							}
+//							if(outTransition.probability!=null) {
+//								if(outTransition.probability.indexOf(parameters[i])>=0) {
+//									outTransition.probability=outTransition.probability.replace(parameters[i], values[i]);
+//									for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//										if(inTransition.node==state) {
+//											inTransition.probability=outTransition.probability;
+//										}
+//									}
+//								}
+//							}
+//							if(outTransition.guard!=null) {
+//								String[] guards=outTransition.guard.split("&&");
+//								for(String guard:guards) {
+//									if(guard.indexOf("="+parameters[i])>=0) {
+//										String[] para=guard.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											outTransition.guard=outTransition.guard.replace(parameters[i], values[i]);
+//											for(TemplTransition inTransition:outTransition.node.inTransitions) {
+//												if(inTransition.node==state) {
+//													inTransition.assignment=outTransition.assignment;
+//												}
+//											}
+//										}
+//									}
+//								}
+//								
+//							}
+//						}
+//						if(state.invariant!=null) {
+//							String[] invariants=state.invariant.split("&&");
+//							for(String invariant:invariants) {
+//								if(invariant.indexOf("="+parameters[i])>=0) {
+//									if(invariant.indexOf("==")<0) {
+//										String[] para=invariant.split("=");
+//										if(para[1].equals(parameters[i])) {
+//											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
+//										}
+//									}
+//									if(invariant.indexOf("==")>0) {
+//										String[] para=invariant.split("==");
+//										if(para[1].equals(parameters[i])) {
+//											state.invariant=state.invariant.replace("="+parameters[i],"="+values[i]);
+//										}
+//									}
+//									
+//								}
+//							}
+//							
+//						}
+//					}
+//					
+//				}
+//				
+//			
+//		}
+//	}
 }

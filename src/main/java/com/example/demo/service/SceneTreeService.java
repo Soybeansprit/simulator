@@ -208,8 +208,8 @@ public class SceneTreeService {
 			////////////////因为模型发生了改变，故更改templGraphs
 			templGraphs.clear();
 			templGraphs=templGraphService.getTemplGraphs(filePath+"\\"+middleChangedModelFileName+".xml");
-			tDot.getIFD(templGraphs, rules, filePath+"\\"+ifdDotFileName);
-			List<Action> actions=tDot.getActions(rules, templGraphs);
+			tDot.getNewIFD(templGraphs, rules, filePath+"\\"+ifdDotFileName);
+			List<Action> actions=tDot.getNewActions(rules, templGraphs);
 			List<Trigger> triggers=tDot.getTriggers(rules);
 			///////////////////////////analyse IFD////////////////////////////////
 			//获得IFD各节点graphNodes

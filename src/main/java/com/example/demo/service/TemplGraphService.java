@@ -58,7 +58,7 @@ public class TemplGraphService {
 		}
 		return templGraphs;
 	}
-	
+	//////////////获得状态机
 	public List<TemplGraph> getTemplGraphs(String modelPathStr) throws DocumentException{
 		GetTemplate getTemplate=new GetTemplate();
 		List<Template> templates=getTemplate.getTemplate(modelPathStr);

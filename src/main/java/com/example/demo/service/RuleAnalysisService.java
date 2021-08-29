@@ -55,95 +55,88 @@ public class RuleAnalysisService {
 		RuleService ruleService=new RuleService();	
 		SceneService sceneService=new SceneService();
 		RuleAnalysisService ruleAnalysisService=new RuleAnalysisService();
-		String ruleText="1. IF SmartHomeSecurity.homeMode AND temperature<=15 THEN M.heatonPulse\r\n" + 
+		String ruleText="1. IF SmartHomeSecurity.homeMode AND temperature<=15 THEN Heater.turn_heat_on\r\n" + 
 				"\r\n" + 
-				"2. IF SmartHomeSecurity.homeMode AND temperature>=30 THEN M.accoolPulse\r\n" + 
+				"2. IF SmartHomeSecurity.homeMode AND temperature>=30 THEN AirConditioner.turn_ac_cool\r\n" + 
 				"\r\n" + 
-				"IF Humidifier.hon THEN M.dopenPulse\r\n"+
-//				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN M.honPulse\r\n" + 
+				"3. IF SmartHomeSecurity.homeMode AND humidity<20 THEN Humidifier.turn_hum_on\r\n" + 
 				"\r\n" + 
-				"4. IF SmartHomeSecurity.homeMode AND humidity>=45 THEN M.hoffPulse\r\n" + 
+				"4. IF SmartHomeSecurity.homeMode AND humidity>=45 THEN Humidifier.turn_hum_off\r\n" + 
 				"\r\n" + 
-				"5. IF SmartHomeSecurity.homeMode AND humidity>65 THEN M.fonPulse\r\n" + 
+				"5. IF SmartHomeSecurity.homeMode AND humidity>65 THEN Fan.turn_fan_on\r\n" + 
 				"\r\n" + 
-				"6. IF SmartHomeSecurity.homeMode AND temperature>28 THEN M.fonPulse\r\n" + 
+				"6. IF SmartHomeSecurity.homeMode AND temperature>28 THEN Fan.turn_fan_on\r\n" + 
 				"\r\n" + 
-				"7. IF SmartHomeSecurity.homeMode AND temperature<20 THEN M.foffPulse\r\n" + 
+				"7. IF SmartHomeSecurity.homeMode AND temperature<20 THEN Fan.turn_fan_off\r\n" + 
 				"\r\n" + 
-				"8. IF SmartHomeSecurity.homeMode AND rain=1 THEN M.phlwhitePulse\r\n" + 
+				"8. IF SmartHomeSecurity.homeMode AND rain=1 THEN PhilipsHueLight.turn_phl_white\r\n" + 
 				"\r\n" + 
-				"9. IF SmartHomeSecurity.homeMode AND temperature<=10 THEN M.phlbluePulse\r\n" + 
+				"9. IF SmartHomeSecurity.homeMode AND temperature<=10 THEN PhilipsHueLight.turn_phl_blue\r\n" + 
 				"\r\n" + 
-				"10. IF SmartHomeSecurity.homeMode AND leak=1 THEN M.phlbluePulse\r\n" + 
+				"10. IF SmartHomeSecurity.homeMode AND leak=1 THEN PhilipsHueLight.turn_phl_blue\r\n" + 
 				"\r\n" + 
-				"11. IF SmartHomeSecurity.awayMode THEN M.phloffPulse\r\n" + 
+				"11. IF SmartHomeSecurity.awayMode THEN PhilipsHueLight.turn_phl_off\r\n" + 
 				"\r\n" + 
-				"12. IF SmartHomeSecurity.homeMode THEN M.phlwhitePulse\r\n" + 
+				"12. IF SmartHomeSecurity.homeMode THEN PhilipsHueLight.turn_phl_white\r\n" + 
 				"\r\n" + 
-				"13. IF Door.dopen THEN M.phlwhitePulse\r\n" + 
+				"13. IF Door.dopen THEN PhilipsHueLight.turn_phl_white\r\n" + 
 				"\r\n" + 
-				"14. IF SmartHomeSecurity.homeMode AND co2ppm>=1000 THEN M.phlredPulse\r\n" + 
+				"14. IF SmartHomeSecurity.homeMode AND co2ppm>=1000 THEN PhilipsHueLight.turn_phl_red\r\n" + 
 				"\r\n" + 
-				"15. IF SmartHomeSecurity.awayMode THEN M.foffPulse\r\n" + 
+				"15. IF SmartHomeSecurity.awayMode THEN Fan.turn_fan_on\r\n" + 
 				"\r\n" + 
-				"16. IF Door.dopen THEN M.heatoffPulse\r\n" + 
+				"16. IF Door.dopen THEN Heater.turn_heat_off\r\n" + 
 				"\r\n" + 
-				"17. IF Window.wopen THEN M.heatoffPulse\r\n" + 
+				"17. IF Window.wopen THEN Heater.turn_heat_off\r\n" + 
 				"\r\n" + 
-				"18. IF SmartHomeSecurity.awayMode THEN M.heatoffPulse,M.acoffPulse,M.foffPulse,M.bclosePulse,M.boffPulse\r\n" + 
+				"18. IF SmartHomeSecurity.awayMode THEN Heater.turn_heat_off,AirConditioner.turn_ac_off,Fan.turn_fan_off,Blind.close_blind,Bulb.turn_bulb_off\r\n" + 
 				"\r\n" + 
-				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN M.acheatPulse\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN AirConditioner.turn_ac_heat\r\n" + 
 				"\r\n" + 
-				"20. IF SmartHomeSecurity.homeMode AND temperature>30 THEN M.accoolPulse\r\n" + 
+				"20. IF SmartHomeSecurity.homeMode AND temperature>30 THEN AirConditioner.turn_ac_cool\r\n" + 
 				"\r\n" + 
-				"21. IF SmartHomeSecurity.homeMode THEN M.rdockPulse\r\n" + 
+				"21. IF SmartHomeSecurity.homeMode THEN Robot.dock_robot\r\n" + 
 				"\r\n" + 
-				"22. IF SmartHomeSecurity.awayMode THEN M.rstartPulse\r\n" + 
+				"22. IF SmartHomeSecurity.awayMode THEN Robot.start_robot\r\n" + 
 				"\r\n" + 
-				"23. IF SmartHomeSecurity.awayMode THEN M.wclosePulse,M.dclosePulse\r\n" + 
+				"23. IF SmartHomeSecurity.awayMode THEN Window.close_window,Door.close_door\r\n" + 
 				"\r\n" + 
-				"24. IF number>0 THEN M.homeModePulse\r\n" + 
+				"24. IF number>0 THEN SmartHomeSecurity.turn_sms_home\r\n" + 
 				"\r\n" + 
-				"24. IF number>0 THEN M.homeModePulse\r\n" + 
+				"25. IF number=0 THEN SmartHomeSecurity.turn_sms_away\r\n" + 
 				"\r\n" + 
-				"20. IF temperature>30 AND SmartHomeSecurity.homeMode THEN M.accoolPulse\r\n" + 
+				"26. IF SmartHomeSecurity.homeMode AND temperature>28 THEN Blind.open_blind\r\n" + 
 				"\r\n" + 
-				"25. IF number=0 THEN M.awayModePulse\r\n" + 
+				"27. IF SmartHomeSecurity.homeMode THEN Bulb.turn_bulb_on\r\n" + 
 				"\r\n" + 
-				"26. IF SmartHomeSecurity.homeMode AND temperature>28 THEN M.bopenPulse\r\n" + 
+				"28. IF SmartHomeSecurity.homeMode AND co2ppm>=800 THEN Fan.turn_fan_on,Window.open_window\r\n" + 
 				"\r\n" + 
-				"27. IF SmartHomeSecurity.homeMode THEN M.bonPulse\r\n" + 
+				"29. IF AirConditioner.cool THEN Window.close_window\r\n" + 
 				"\r\n" + 
-				"28. IF SmartHomeSecurity.homeMode AND co2ppm>=800 THEN M.fonPulse,M.wopenPulse\r\n" + 
-				"\r\n" + 
-				"29. IF AirConditioner.cool THEN M.wclosePulse\r\n" + 
-				"\r\n" + 
-				"30. IF AirConditioner.heat THEN M.wclosePulse\r\n"+
+				"30. IF AirConditioner.heat THEN Window.close_window\r\n"+
 				"\r\n" +
-				"31. IF temperature>30 THEN M.dddddPulse\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN AirConditioner.turn_ac_heat\r\n"+ 
 				"\r\n" + 
-				"19. IF SmartHomeSecurity.homeMode AND temperature<18 THEN M.acheatPulse\r\n"+ 
+				"19. IF temperature>20 AND temperature<18 THEN AirConditioner.turn_heat_ac\r\n" + 
 				"\r\n" + 
-				"19. IF temperature>20 AND temperature<18 THEN M.acheatPulse\r\n" + 
+				"19. IF SmartHomeSecurity.homeMode AND SamrtHomeSecurity.awayMode THEN AirConditioner.turn_ac_heat\r\n"+ 
 				"\r\n" + 
-				"19. IF SmartHomeSecurity.homeMode AND SamrtHomeSecurity.awayMode THEN M.acheatPulse\r\n"+ 
+				"19. IF number=0 AND number>0 THEN AirConditioner.turn_ac_heat\r\n"+ 
 				"\r\n" + 
-				"19. IF number=0 AND number>0 THEN M.acheatPulse\r\n"+ 
-				"\r\n" + 
-				"19. IF temperature<18 AND temperature>21 THEN M.acheatPulse\r\n"+
+				"19. IF temperature<18 AND temperature>21 THEN AirConditioner.turn_ac_heat\r\n"+
 				"\r\n"+
-				"IF temperature>18 THEN M.wopenPulse,M.acheatPulse\r\n"+
+				"IF temperature>18 THEN Window.open_window,AirConditioner.turn_ac_heat\r\n"+
 				"\r\n"+
-				"IF temperature>18 THEN M.wopenPulse\r\n"+
+				"IF temperature>18 THEN Window.open_window\r\n"+
 				"\r\n"+
-				"IF temperature>18 THEN M.fonPulse\r\n"+
+				"IF temperature>18 THEN Fan.turn_fan_on\r\n"+
 				"\r\n"+
-				"IF Fan.fon THEN M.acheatPulse\r\n";
+				"IF Fan.fon THEN AirConditioner.turn_ac_heat\r\n";
 		String initModelName="exp0108.xml";
 		String simulationTime="300";
 		List<Rule> rules=ruleService.getRuleList(ruleText);
 		System.out.println(rules);
-		StaticAnalysisResult staticAnalysisResult=getRequirementError(rules, "exp0108-person-dif-change.xml","D:\\workspace");
+		StaticAnalysisResult staticAnalysisResult=getRequirementError(rules, "exp0108-person-dif-new.xml","D:\\workspace");
 		List<Rule> newRules=deleteRepeat(rules);
 		GenerateModelParameters generateModelParameters=sceneTreeService.getAllSimulationModels(rules,"D:\\workspace", initModelName, simulationTime);
 		List<Scene> scenes=new ArrayList<Scene>();
@@ -195,7 +188,7 @@ public class RuleAnalysisService {
 		///////////////////删除重复的规则
 		List<Rule> newRules=deleteRepeat(rules);
 		
-		tDot.getIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
+		tDot.getNewIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
 		List<GraphNode> nodes=toNode.getNodes(filePath+"\\"+initFileName+".dot");
 		List<GraphNode> ruleNodes=new ArrayList<GraphNode>();
 		
@@ -218,7 +211,7 @@ public class RuleAnalysisService {
 				}
 			}
 		}
-		tDot.getIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
+		tDot.getNewIFD(templGraphs, newRules, filePath+"\\"+initFileName+".dot");
 		ruleNodes.clear();
 		nodes.clear();
 		nodes=toNode.getNodes(filePath+"\\"+initFileName+".dot");
@@ -246,7 +239,7 @@ public class RuleAnalysisService {
 			}
 		}
 		System.out.println(redundantRuleNodes);
-		List<Action> actions=tDot.getActions(newRules,templGraphs);
+		List<Action> actions=tDot.getNewActions(newRules,templGraphs);
 		List<Device> cannotOffDevices=getIncompleteness(devices, actions);
 		List<String> incompleteness=new ArrayList<String>();
 		for(Device device:cannotOffDevices) {
@@ -729,6 +722,9 @@ public class RuleAnalysisService {
 			String reason="";
 			boolean incorrect=false;
 			for(String action:rule.getAction()) {
+				
+				if(action.indexOf(".")>0)
+				action=action.substring(action.indexOf(".")).substring(1);
 				boolean existAction=false;
 				device:
 				for(Device device:devices) {

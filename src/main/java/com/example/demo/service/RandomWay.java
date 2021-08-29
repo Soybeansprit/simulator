@@ -310,9 +310,9 @@ public class RandomWay {
 			num=num/(attrPiecewises.get(i).piecewise.size()+1);
 			attrValue[0]=attrPiecewises.get(i).name;
 			if(k==0) {
-				attrValue[1]=String.format("%.1f", attrPiecewises.get(i).piecewise.get(k)-1);
+				attrValue[1]=String.format("%.1f", attrPiecewises.get(i).piecewise.get(k)-5);
 			}else if(k==attrPiecewises.get(i).piecewise.size()+1-1){
-				attrValue[1]=String.format("%.1f", attrPiecewises.get(i).piecewise.get(k-1)+1);
+				attrValue[1]=String.format("%.1f", attrPiecewises.get(i).piecewise.get(k-1)+5);
 			}else {
 				//中间取随机值——>改成取中间值
 				attrValue[1]=String.format("%.1f", (attrPiecewises.get(i).piecewise.get(k)-attrPiecewises.get(i).piecewise.get(k-1))/2+attrPiecewises.get(i).piecewise.get(k-1));
